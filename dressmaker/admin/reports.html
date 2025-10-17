@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports & Audit | DressMate Admin</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f7f7f7;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      .main-container {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+
+      .card-container {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        border: 1px solid #fce7f3;
+      }
+      .card-container:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: #ecc0d7 #f3f4f6;
+      }
+
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb {
+        background-color: #db2777;
+        border-radius: 20px;
+      }
+
+      .report-fallback-message {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 150px;
+        color: #f59e0b;
+        font-weight: 500;
+        text-align: center;
+        padding: 1rem;
+        border: 1px dashed #fcd34d;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+      }
+
+      .chart-loading {
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        color: #db2777;
+      }
+    </style>
+  </head>
+
+  <body class="flex main-container">
+    <div
+      id="mobile-overlay"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-30 hidden lg:hidden transition-opacity duration-300 no-print"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <aside
+      id="sidebar"
+      class="sidebar fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out bg-white w-64 flex flex-col z-40 shadow-xl border-r border-pink-100 no-print"
+    >
+      <div
+        class="p-6 flex items-center justify-center border-b border-pink-100 h-20"
+      >
+        <img
+          src="../../assets/logo.png"
+          alt="DressMate Logo"
+          class="w-10 h-10 mr-3"
+        />
+        <span class="text-xl font-bold text-pink-700">DressMate Admin</span>
+      </div>
+
+      <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
+        <a
+          href="./dashboard.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-home w-5 mr-3"></i>
+          Dashboard
+        </a>
+        <a
+          href="./users.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-users w-5 mr-3"></i>
+          Users
+        </a>
+        <a
+          href="./reports.html"
+          class="flex items-center p-3 rounded-xl bg-pink-100 text-pink-700 font-semibold hover:bg-pink-200 transition duration-200"
+        >
+          <i class="fas fa-chart-line w-5 mr-3"></i>
+          Reports
+        </a>
+        <a
+          href="settings.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-cog w-5 mr-3"></i>
+          Settings
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-pink-100">
+        <button
+          id="logoutButton"
+          class="w-full flex items-center justify-center p-3 rounded-xl bg-pink-600 text-white font-semibold hover:bg-pink-700 transition duration-200 shadow-lg"
+        >
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <div
+      class="flex-1 lg:ml-64 flex flex-col min-h-screen print-area overflow-hidden"
+    >
+      <header
+        class="bg-white shadow-md lg:shadow-none border-b border-pink-100 h-20 flex items-center justify-between p-4 lg:p-6 sticky top-0 z-20 no-print"
+      >
+        <button
+          id="sidebarToggle"
+          class="text-pink-600 lg:hidden focus:outline-none"
+          onclick="toggleSidebar()"
+        >
+          <i class="fas fa-bars text-2xl"></i>
+        </button>
+        <h2 class="text-2xl font-bold text-gray-800 hidden lg:block">
+          Reports & Audits
+        </h2>
+
+        <div class="flex items-center space-x-3">
+          <span
+            class="text-sm font-medium text-gray-600 hidden sm:block"
+            id="adminEmail"
+          >
+            Loading...
+          </span>
+          <div
+            id="adminAvatar"
+            class="w-10 h-10 bg-pink-200 rounded-full flex items-center justify-center text-pink-700 font-bold text-lg"
+          ></div>
+        </div>
+      </header>
+
+      <main class="flex-grow p-4 lg:p-8">
+        <div class="mb-8">
+          <h1
+            class="text-3xl font-bold text-pink-700 mb-1"
+            data-aos="fade-right"
+          >
+            Data Reports Console
+          </h1>
+          <p class="text-gray-600" data-aos="fade-right" data-aos-delay="100">
+            Comprehensive audit of all user-generated data.
+          </p>
+        </div>
+
+        <div
+          class="card-container mb-8"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">
+            Overview Charts 📈
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h4 class="text-lg font-medium text-gray-700 mb-2">
+                User Registration Over Time
+              </h4>
+              <div id="userRegistrationChart" class="chart-loading">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Loading chart...
+              </div>
+            </div>
+            <div>
+              <h4 class="text-lg font-medium text-gray-700 mb-2">
+                Clothing Type Breakdown
+              </h4>
+              <div id="clothingTypeChart" class="chart-loading">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Loading chart...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-8">
+          <div class="card-container" data-aos="fade-up">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+              1. Registered Users Audit
+            </h3>
+            <div id="usersReport" class="overflow-x-auto w-full">
+              <div class="report-fallback-message">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Loading user data...
+              </div>
+            </div>
+          </div>
+
+          <div class="card-container" data-aos="fade-up" data-aos-delay="100">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+              2. User Clothing Items Inventory
+            </h3>
+            <div id="clothesReport" class="overflow-x-auto w-full">
+              <div class="report-fallback-message">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Loading clothing
+                data...
+              </div>
+            </div>
+          </div>
+
+          <div class="card-container" data-aos="fade-up" data-aos-delay="200">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+              3. Weekly Outfits Log
+            </h3>
+            <div id="outfitsReport" class="overflow-x-auto w-full">
+              <div class="report-fallback-message">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Loading outfit
+                data...
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+      AOS.init();
+
+      // --- Constants and Initialization ---
+      const EXCLUDED_EMAIL = "dressmate@dress.com"; // Your Admin Email
+      const PRIMARY_COLOR = "#db2777"; // pink-700
+      const SECONDARY_COLOR = "#f97316"; // orange-500
+
+      function notify(icon, title, text) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          text: text,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "swal2-popup",
+            title: "swal2-title",
+          },
+        });
+      }
+
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("mobile-overlay");
+
+      function toggleSidebar() {
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      }
+
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      function renderUserRegistrationChart(userData) {
+        const container = document.getElementById("userRegistrationChart");
+        const monthlyCounts = userData.reduce((acc, user) => {
+          const date = new Date(user.created_at);
+          const dateKey = date.toISOString().substring(0, 7); // YYYY-MM
+          const monthYearLabel = date.toLocaleString("en-US", {
+            month: "short",
+            year: "2-digit",
+          });
+
+          if (!acc[dateKey]) {
+            acc[dateKey] = { label: monthYearLabel, count: 0 };
+          }
+          acc[dateKey].count += 1;
+          return acc;
+        }, {});
+
+        const sortedKeys = Object.keys(monthlyCounts).sort();
+        const categories = sortedKeys.map((key) => monthlyCounts[key].label);
+        const seriesData = sortedKeys.map((key) => monthlyCounts[key].count);
+
+        if (categories.length === 0) {
+          container.innerHTML =
+            '<div class="report-fallback-message">No user data for trend chart.</div>';
+          return;
+        }
+
+        const options = {
+          series: [
+            {
+              name: "New Users",
+              data: seriesData,
+            },
+          ],
+          chart: {
+            type: "area",
+            height: 350,
+            toolbar: {
+              show: false,
+            },
+            fontFamily: "Poppins, sans-serif",
+          },
+          colors: [PRIMARY_COLOR],
+          dataLabels: { enabled: false },
+          stroke: { curve: "smooth" },
+          xaxis: { categories: categories, title: { text: "Month" } },
+          yaxis: { title: { text: "Count" }, min: 0, tickAmount: 5 },
+          tooltip: { x: { format: "MMM yy" } },
+        };
+
+        container.innerHTML = ""; // Clear loading state
+        const chart = new ApexCharts(container, options);
+        chart.render();
+      }
+
+      function renderClothingTypeChart(clothesData) {
+        const container = document.getElementById("clothingTypeChart");
+        const typeCounts = clothesData.reduce((acc, item) => {
+          const type =
+            (item.clothing_type || "Unspecified").trim().toUpperCase() ||
+            "UNSPECIFIED";
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {});
+
+        const labels = Object.keys(typeCounts);
+        const series = labels.map((label) => typeCounts[label]);
+
+        if (labels.length === 0) {
+          container.innerHTML =
+            '<div class="report-fallback-message">No clothing data for breakdown chart.</div>';
+          return;
+        }
+
+        const options = {
+          series: series,
+          chart: {
+            type: "donut",
+            height: 350,
+            fontFamily: "Poppins, sans-serif",
+          },
+          labels: labels,
+          colors: [
+            PRIMARY_COLOR,
+            "#ec4899",
+            SECONDARY_COLOR,
+            "#3b82f6",
+            "#10b981",
+            "#fcd34d",
+            "#9333ea",
+          ],
+          responsive: [
+            {
+              breakpoint: 480,
+              options: {
+                chart: { width: 250 },
+                legend: { position: "bottom" },
+              },
+            },
+          ],
+          legend: {
+            position: "right",
+            offsetY: 0,
+            height: 230,
+          },
+          plotOptions: {
+            pie: {
+              donut: {
+                labels: {
+                  show: true,
+                  total: {
+                    show: true,
+                    label: "Total Items",
+                    formatter: function (w) {
+                      return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                    },
+                  },
+                },
+              },
+            },
+          },
+        };
+
+        container.innerHTML = ""; // Clear loading state
+        const chart = new ApexCharts(container, options);
+        chart.render();
+      }
+
+      async function renderReport(containerId, rpcName, title, columns) {
+        const container = document.getElementById(containerId);
+        let data = [];
+
+        container.innerHTML = `<div class="report-fallback-message">
+                                 <i class="fas fa-spinner fa-spin mr-2"></i> Loading ${title} report...
+                               </div>`;
+
+        try {
+          const { data: fetchedData, error } = await supabaseClient.rpc(
+            rpcName
+          );
+
+          if (error) throw error;
+          data = fetchedData || [];
+
+          if (data.length === 0) {
+            container.innerHTML = `<div class="report-fallback-message">No ${title} data found.</div>`;
+            return data;
+          }
+
+          const tableHTML = `
+            <table class="min-w-max divide-y divide-pink-200 w-full">
+              <thead class="bg-pink-50">
+                <tr>
+                  ${columns
+            .map(
+              (col) => `
+                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                col.responsiveClass || ""
+              }">
+                      ${col.header}
+                    </th>
+                  `
+            )
+            .join("")}
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-100">
+                ${data
+            .map(
+              (row) => `
+                  <tr class="hover:bg-gray-50 transition duration-150">
+                    ${columns
+                .map(
+                  (col) => `
+                      <td class="px-3 py-4 text-sm text-gray-900 ${
+                    col.responsiveClass || ""
+                  }" 
+                          style="${
+                    col.field === "description"
+                      ? "white-space: normal;"
+                      : "white-space: nowrap;"
+                  }">
+                        ${
+                    col.formatter
+                      ? col.formatter(row[col.field], row)
+                      : row[col.field] || "N/A"
+                  }
+                      </td>
+                    `
+                )
+                .join("")}
+                  </tr>
+                `
+            )
+            .join("")}
+              </tbody>
+            </table>
+          `;
+          container.innerHTML = tableHTML;
+
+          return data;
+        } catch (error) {
+          console.error(`🚨 Supabase Error in ${rpcName}:`, error);
+          container.innerHTML = `<div class="report-fallback-message" style="color:#ef4444; border-color:#fecaca;">
+               Error fetching ${title} data. Ensure the RPC function "${rpcName}" is created in Supabase with SECURITY DEFINER.
+             </div>`;
+          return [];
+        }
+      }
+
+      const formatDate = (value) =>
+        value ? new Date(value).toLocaleDateString() : "N/A";
+      const maskEmail = (email) => {
+        if (!email || email.indexOf("@") === -1) return "N/A";
+        const [localPart, domain] = email.split("@");
+        const firstChar = localPart.charAt(0);
+        const lastChar = localPart.charAt(localPart.length - 1);
+        return `${firstChar}***${lastChar}@${domain}`;
+      };
+
+      const usersColumns = [
+        {
+          header: "User ID",
+          field: "user_id",
+          responsiveClass: "hidden lg:table-cell",
+        },
+        { header: "Full Name", field: "full_name" },
+        { header: "Email", field: "email", formatter: maskEmail },
+        {
+          header: "Created At",
+          field: "created_at",
+          formatter: formatDate,
+          responsiveClass: "hidden sm:table-cell",
+        },
+        {
+          header: "Last Sign In",
+          field: "last_sign_in_at",
+          formatter: (v) =>
+            v
+              ? new Date(v).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })
+              : "Never",
+          responsiveClass: "hidden md:table-cell",
+        },
+      ];
+
+      const clothesColumns = [
+        {
+          header: "Item ID",
+          field: "id",
+          responsiveClass: "hidden xl:table-cell",
+        },
+        {
+          header: "User ID",
+          field: "user_id",
+          responsiveClass: "hidden lg:table-cell",
+        },
+        { header: "Type", field: "clothing_type" },
+        {
+          header: "Style",
+          field: "style",
+          responsiveClass: "hidden sm:table-cell",
+        },
+        {
+          header: "Description",
+          field: "description",
+          responsiveClass: "hidden md:table-cell",
+        },
+        {
+          header: "Image URL",
+          field: "image_url",
+          formatter: (v) => (v ? "Link" : "No Image"),
+          responsiveClass: "hidden lg:table-cell",
+        },
+        { header: "Created At", field: "created_at", formatter: formatDate },
+      ];
+
+      const outfitsColumns = [
+        {
+          header: "Outfit ID",
+          field: "id",
+          responsiveClass: "hidden xl:table-cell",
+        },
+        {
+          header: "User ID",
+          field: "user_id",
+          responsiveClass: "hidden lg:table-cell",
+        },
+        { header: "Date", field: "outfit_date", formatter: formatDate },
+        { header: "Name", field: "outfit_name" },
+        {
+          header: "Upper Desc",
+          field: "upper_desc",
+          responsiveClass: "hidden md:table-cell",
+        },
+        {
+          header: "Pants Desc",
+          field: "pants_desc",
+          responsiveClass: "hidden md:table-cell",
+        },
+        {
+          header: "Favorite",
+          field: "is_favorite",
+          formatter: (v) => (v ? "⭐ Yes" : "No"),
+          responsiveClass: "hidden sm:table-cell",
+        },
+      ];
+
+      async function loadAllReports() {
+        const [userData, clothesData] = await Promise.all([
+          renderReport(
+            "usersReport",
+            "get_all_reports_users",
+            "User Accounts",
+            usersColumns
+          ),
+          renderReport(
+            "clothesReport",
+            "get_all_reports_clothes",
+            "Clothing Items",
+            clothesColumns
+          ),
+          renderReport(
+            "outfitsReport",
+            "get_all_reports_outfits",
+            "Weekly Outfits",
+            outfitsColumns
+          ),
+        ]);
+
+        if (Array.isArray(userData)) {
+          renderUserRegistrationChart(userData);
+        }
+        if (Array.isArray(clothesData)) {
+          renderClothingTypeChart(clothesData);
+        }
+      }
+
+      async function checkAuthAndLoadData() {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabaseClient.auth.getUser();
+
+        if (!user || authError) {
+          window.location.href = "./login.html";
+          return;
+        }
+
+        const { data: adminData, error: adminCheckError } = await supabaseClient
+          .from("admin_users_secure")
+          .select("name")
+          .eq("auth_id", user.id)
+          .single();
+
+        if (adminCheckError && adminCheckError.code !== "PGRST116") {
+          console.error("Admin Check RLS/DB Error:", adminCheckError);
+        }
+
+        if (!adminData) {
+          await supabaseClient.auth.signOut();
+          notify(
+            "error",
+            "Access Denied",
+            "You are not authorized to view this page."
+          );
+          setTimeout(() => {
+            window.location.href = "../login.html";
+          }, 1500);
+          return;
+        }
+
+        const adminEmail = user.email || "Admin";
+        const initial = adminEmail.charAt(0).toUpperCase();
+
+        document.getElementById("adminEmail").textContent = adminEmail;
+        document.getElementById("adminAvatar").textContent = initial;
+
+        // Load all reports and charts
+        loadAllReports();
+      }
+
+      document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) {
+            notify(
+              "error",
+              "Logout Failed",
+              "Could not log out. Try refreshing the page."
+            );
+            return;
+          }
+          notify("info", "Logged Out", "Redirecting to login...");
+          setTimeout(() => {
+            window.location.href = "./login.html";
+          }, 500);
+        });
+
+      checkAuthAndLoadData();
+    </script>
+  </body>
+</html>

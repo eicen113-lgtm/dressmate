@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | DressMate</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="./assets/logo.png" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #ffe6f0;
+        min-height: 100vh;
+        overflow: hidden;
+        transition: opacity 1s ease;
+      }
+
+      .fade-out {
+        opacity: 0;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 192, 203, 0.4);
+      }
+      /* ADD CUSTOM SWEETALERT STYLES for Toast notifications (matching your admin page) */
+      .swal2-popup {
+        font-family: "Poppins", sans-serif !important;
+        border-radius: 1rem !important;
+        /* Use a neutral/user-friendly pink for the title */
+      }
+      .swal2-title {
+        color: #d12e87 !important;
+      }
+    </style>
+  </head>
+
+  <body class="flex items-center justify-center px-4">
+    <div
+      class="w-full max-w-md sm:max-w-md md:max-w-lg glass rounded-2xl shadow-lg p-6 sm:p-8 text-gray-800 text-sm sm:text-base"
+      data-aos="fade-up"
+      data-aos-duration="1000"
+    >
+      <div class="text-center mb-6">
+        <a href="index.html">
+          <img
+            src="./assets/logo.png"
+            alt="DressMate Logo"
+            class="mx-auto w-24 h-24 mb-3"
+            data-aos="zoom-in"
+          />
+        </a>
+        <h1 class="text-2xl font-semibold text-pink-700" data-aos="fade-up">
+          Welcome Back to DressMate
+        </h1>
+        <p
+          class="text-sm text-gray-600 mt-1"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
+          Log in to manage your wardrobe
+        </p>
+      </div>
+
+      <form
+        id="loginForm"
+        class="space-y-4"
+        data-aos="fade-up"
+        data-aos-delay="400"
+      >
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700"
+            >Email</label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="you@example.com"
+            class="w-full mt-1 px-4 py-2 rounded-lg border border-pink-200 focus:ring-2 focus:ring-pink-400"
+          />
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700"
+            >Password</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            class="w-full mt-1 px-4 py-2 rounded-lg border border-pink-200 focus:ring-2 focus:ring-pink-400"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-full font-semibold transition shadow-md"
+        >
+          <i class="fas fa-sign-in-alt mr-2"></i> Log In
+        </button>
+      </form>
+
+      <p class="text-sm text-center text-gray-700 mt-6">
+        Don’t have an account?
+        <a
+          href="register.html"
+          class="text-pink-600 font-semibold hover:underline"
+          >Sign Up</a
+        >
+      </p>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+      AOS.init();
+
+      // 2. ADD THE NOTIFY HELPER FUNCTION
+      function notify(icon, title, text) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          text: text,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "swal2-popup",
+            title: "swal2-title",
+          },
+        });
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      const loginForm = document.getElementById("loginForm");
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const loginButton = e.target.querySelector('button[type="submit"]');
+
+        if (!email || !password) {
+          notify(
+            "warning",
+            "Missing Fields",
+            "Please enter both email and password."
+          );
+          return;
+        }
+
+        const ADMIN_EMAIL = "dressmate@dress.com";
+        if (email.toLowerCase() === ADMIN_EMAIL) {
+          notify(
+            "error",
+            "Admin Access Required",
+            "This email is reserved for administrative access. Use the Admin Portal."
+          );
+
+          loginButton.disabled = false;
+          loginButton.innerHTML =
+            '<i class="fas fa-sign-in-alt mr-2"></i> Log In';
+          loginButton.classList.remove("opacity-70", "cursor-not-allowed");
+          document.getElementById("password").value = "";
+          return;
+        }
+
+        loginButton.disabled = true;
+        loginButton.innerHTML =
+          '<i class="fas fa-spinner fa-spin mr-2"></i> Logging in...';
+        loginButton.classList.add("opacity-70", "cursor-not-allowed");
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          notify("error", "Login Failed", error.message);
+          loginButton.disabled = false;
+          loginButton.innerHTML =
+            '<i class="fas fa-sign-in-alt mr-2"></i> Log In';
+          loginButton.classList.remove("opacity-70", "cursor-not-allowed");
+          return;
+        }
+
+        notify("success", "Welcome!", `Logged in as ${email}. Redirecting...`);
+
+        document.body.classList.add("fade-out");
+        setTimeout(() => {
+          window.location.href = "./users/dashboard.html";
+        }, 3000);
+      });
+    </script>
+  </body>
+</html>

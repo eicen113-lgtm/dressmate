@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get Started | DressMate</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(180deg, #ffeaf4 0%, #fff 100%);
+        min-height: 100vh;
+        padding-top: 80px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 50;
+        backdrop-filter: blur(15px);
+        background: rgba(255, 255, 255, 0.7);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 182, 193, 0.3);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: 650px;
+        transition: all 0.3s ease;
+      }
+
+      .selection-box {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-radius: 15px;
+        background: #fff;
+        padding: 20px 15px;
+        text-align: center;
+        font-weight: 500;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100px;
+      }
+
+      .selection-box i {
+        font-size: 2.2rem;
+        margin-bottom: 8px;
+        color: #ec4899;
+      }
+
+      .selection-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(255, 182, 193, 0.25);
+      }
+
+      .selection-box.selected {
+        border: 3px solid #db2777;
+        background-color: #fce7f3;
+        box-shadow: 0 0 0 2px #db2777;
+      }
+
+      .selection-box.suggested {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+        box-shadow: 0 0 0 1px #3b82f6;
+      }
+
+      .selection-box.suggested i {
+        color: #3b82f6;
+      }
+
+      #preferencesCard {
+        background: #fff5f8;
+        border: 2px solid #ec4899;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .btn-save {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        display: block;
+        font-size: 1.2rem;
+        padding: 15px;
+      }
+
+      .step-heading {
+        position: relative;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+      }
+
+      .step-heading:after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: #fca5a5;
+        border-radius: 2px;
+      }
+
+      /* Suggestion Bubble Style */
+      .suggestion-bubble {
+        background-color: #60a5fa; /* Blue for suggestion */
+        color: white;
+        padding: 5px 12px;
+        border-radius: 9999px; /* Pill shape */
+        font-size: 0.875rem; /* text-sm */
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-left: 10px;
+        transform: translateY(-2px); /* Slight lift */
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="flex items-center justify-between px-6 py-4">
+      <div class="flex items-center gap-3">
+        <a
+          href="./dashboard.html"
+          class="text-gray-700 hover:text-pink-600 flex items-center gap-2 font-medium"
+        >
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+        <h1 class="text-xl font-semibold text-pink-600">Get Started</h1>
+      </div>
+    </header>
+
+    <main class="flex justify-center w-full px-6 pt-6">
+      <div class="glass-card">
+        <div id="preferencesCard" class="text-center">
+          <h2 class="font-bold text-pink-700 mb-4 text-lg">
+            <i class="fas fa-check-circle mr-2"></i> Current Selections:
+          </h2>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
+            <p id="prefGender" class="bg-white p-2 rounded-lg shadow-sm">
+              Gender: -
+            </p>
+            <p id="prefOutfit" class="bg-white p-2 rounded-lg shadow-sm">
+              Type: -
+            </p>
+            <p id="prefUpper" class="bg-white p-2 rounded-lg shadow-sm">
+              Upper: -
+            </p>
+            <p id="prefPants" class="bg-white p-2 rounded-lg shadow-sm">
+              Pants: -
+            </p>
+            <p id="prefShoes" class="bg-white p-2 rounded-lg shadow-sm">
+              Shoes: -
+            </p>
+          </div>
+        </div>
+
+        <div id="stepsContainer">
+          <section id="step-gender" class="mb-8">
+            <h3
+              class="step-heading text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center"
+            >
+              Step 1: Select Your Gender
+              <span id="suggestion-gender"></span>
+            </h3>
+            <div class="flex justify-center gap-8 flex-wrap">
+              <div class="selection-box w-36" data-value="Male">
+                <i class="fa-solid fa-mars"></i>
+                Male
+              </div>
+              <div class="selection-box w-36" data-value="Female">
+                <i class="fa-solid fa-venus"></i>
+                Female
+              </div>
+              <div class="selection-box w-36" data-value="Unspecified">
+                <i class="fa-solid fa-genderless"></i>
+                Prefer Not to Say
+              </div>
+            </div>
+          </section>
+
+          <section id="step-outfit" class="mb-8 hidden">
+            <h3
+              class="step-heading text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center"
+            >
+              Step 2: Choose Your Go-To Style
+              <span id="suggestion-outfit_type"></span>
+            </h3>
+            <div class="grid grid-cols-3 gap-4">
+              <div class="selection-box" data-value="Formal">
+                <i class="fa-solid fa-tie"></i>
+                Formal
+              </div>
+              <div class="selection-box" data-value="Casual">
+                <i class="fa-solid fa-user-friends"></i>
+                Casual
+              </div>
+              <div class="selection-box" data-value="Sporty">
+                <i class="fa-solid fa-running"></i>
+                Sporty
+              </div>
+              <div class="selection-box" data-value="Streetwear">
+                <i class="fa-solid fa-hat-cowboy"></i>
+                Streetwear
+              </div>
+              <div class="selection-box" data-value="OG">
+                <i class="fa-solid fa-fire"></i>
+                OG (Original)
+              </div>
+              <div class="selection-box" data-value="Lounge">
+                <i class="fa-solid fa-couch"></i>
+                Lounge
+              </div>
+            </div>
+          </section>
+
+          <section id="step-upper" class="mb-8 hidden">
+            <h3
+              class="step-heading text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center"
+            >
+              Step 3: Favorite Upper Wear
+              <span id="suggestion-upper"></span>
+            </h3>
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-4">
+              <div class="selection-box" data-value="Polo Shirt">
+                <i class="fa-solid fa-tshirt"></i>
+                Polo Shirt
+              </div>
+              <div class="selection-box" data-value="T-Shirt">
+                <i class="fa-solid fa-shirt"></i>
+                T-Shirt
+              </div>
+              <div class="selection-box" data-value="Blouse">
+                <i class="fa-solid fa-vest-patches"></i>
+                Blouse
+              </div>
+              <div class="selection-box" data-value="Tank Top">
+                <i class="fa-solid fa-hand-lizard"></i>
+                Tank Top
+              </div>
+              <div class="selection-box" data-value="Hoodie">
+                <i class="fa-solid fa-person-military-rifle"></i>
+                Hoodie
+              </div>
+            </div>
+          </section>
+
+          <section id="step-pants" class="mb-8 hidden">
+            <h3
+              class="step-heading text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center"
+            >
+              Step 4: Favorite Lower Wear
+              <span id="suggestion-pants"></span>
+            </h3>
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-4">
+              <div class="selection-box" data-value="Jeans">
+                <i class="fa-solid fa-mitten"></i>
+                Jeans
+              </div>
+              <div class="selection-box" data-value="Chinos">
+                <i class="fa-solid fa-person-walking"></i>
+                Chinos
+              </div>
+              <div class="selection-box" data-value="Shorts">
+                <i class="fa-solid fa-person-walking-luggage"></i>
+                Shorts
+              </div>
+              <div class="selection-box" data-value="Joggers">
+                <i class="fa-solid fa-person-running"></i>
+                Joggers
+              </div>
+              <div class="selection-box" data-value="Trousers">
+                <i class="fa-solid fa-user-tie"></i>
+                Trousers
+              </div>
+            </div>
+          </section>
+
+          <section id="step-shoes" class="mb-8 hidden">
+            <h3
+              class="step-heading text-2xl font-bold text-gray-800 mb-4 text-center flex items-center justify-center"
+            >
+              Step 5: Favorite Shoes
+              <span id="suggestion-shoes"></span>
+            </h3>
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-4">
+              <div class="selection-box" data-value="Nike Shoes">
+                <i class="fa-solid fa-shoe-prints"></i>
+                Nike Shoes
+              </div>
+              <div class="selection-box" data-value="Adidas Shoes">
+                <i class="fa-solid fa-running"></i>
+                Adidas Shoes
+              </div>
+              <div class="selection-box" data-value="Black Shoes">
+                <i class="fa-solid fa-user-secret"></i>
+                Black Shoes
+              </div>
+              <div class="selection-box" data-value="Loafers">
+                <i class="fa-solid fa-shoe-ko"></i>
+                Loafers
+              </div>
+              <div class="selection-box" data-value="Sandals">
+                <i class="fa-solid fa-fan"></i>
+                Sandals
+              </div>
+            </div>
+          </section>
+
+          <button
+            id="savePreferencesBtn"
+            class="btn-save bg-pink-500 hover:bg-pink-600 text-white rounded-full font-bold shadow-xl transition-all hidden"
+          >
+            <i class="fas fa-cloud-upload-alt mr-2"></i> Save Preferences &
+            Finish
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+      // IMPORTANT: Replace with your actual Supabase keys
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      let userSelections = {};
+      let previousPreferences = {};
+
+      // --- Helper Functions ---
+
+      /** Shows a SweetAlert notification. */
+      function notify(icon, title) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          showConfirmButton: false,
+          timer: 2000,
+          toast: true,
+          position: "top-end",
+          customClass: {
+            container: "z-50",
+          },
+        });
+      }
+
+      /** Fetches the Supabase user ID from the 'users' table. */
+      async function getUserId() {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return null;
+        const { data: profile } = await supabase
+          .from("users")
+          .select("id")
+          .eq("auth_id", user.id)
+          .single();
+        return profile?.id;
+      }
+
+      /** Fetches the latest saved preferences for the current user. */
+      async function fetchPreviousPreferences(userId) {
+        const { data, error } = await supabase
+          .from("user_preferences_simple")
+          .select("gender, outfit_type, upper, pants, shoes")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error && error.code !== "PGRST116") {
+          console.error("Error fetching previous preferences:", error);
+        }
+        // Ensure keys match the table schema: outfit_type, not outfitType
+        return data || {};
+      }
+
+      // --- Core Logic ---
+
+      /** Applies the visual suggestion to the heading and the box itself. */
+      function applySuggestion(stepId, category, previousValue) {
+        if (!previousValue) return;
+
+        // 1. Update the Heading Bubble
+        const bubbleEl = document.getElementById(`suggestion-${category}`);
+        if (bubbleEl) {
+          bubbleEl.innerHTML = `<span class="suggestion-bubble">
+                    <i class="fas fa-history mr-1 text-sm"></i> Last Used: ${previousValue}
+                </span>`;
+        }
+
+        // 2. Update the Selection Box itself (for visual highlight)
+        const boxes = document.querySelectorAll(`#${stepId} .selection-box`);
+        boxes.forEach((box) => {
+          box.classList.remove("suggested");
+          // Remove existing suggestion text if present
+          const existingSpan = box.querySelector(".suggestion-text");
+          if (existingSpan) existingSpan.remove();
+
+          if (box.dataset.value === previousValue) {
+            box.classList.add("suggested");
+            const span = document.createElement("span");
+            span.className =
+              "suggestion-text text-xs font-semibold mt-1 text-blue-700";
+            span.textContent = " (Last Used)";
+            box.appendChild(span);
+          }
+        });
+      }
+
+      function setupSelection(stepId, nextStepId, category) {
+        const boxes = document.querySelectorAll(`#${stepId} .selection-box`);
+
+        // Apply suggestions visually when setting up the step
+        applySuggestion(stepId, category, previousPreferences[category]);
+
+        boxes.forEach((box) => {
+          box.addEventListener("click", () => {
+            boxes.forEach((b) => b.classList.remove("selected"));
+            box.classList.add("selected");
+
+            // Map the data-value to the correct key in userSelections
+            // Note: outfit_type is the Supabase column name, but we use outfitType for JS convention
+            userSelections[
+              category === "outfit_type" ? "outfitType" : category
+            ] = box.dataset.value;
+
+            document.getElementById(stepId).classList.add("hidden");
+            if (nextStepId) {
+              const nextStepEl = document.getElementById(nextStepId);
+              nextStepEl.classList.remove("hidden");
+
+              // Scroll smoothly to the next step
+              nextStepEl.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else {
+              const btn = document.getElementById("savePreferencesBtn");
+              btn.classList.remove("hidden");
+
+              // Scroll to the save button
+              btn.scrollIntoView({ behavior: "smooth", block: "end" });
+            }
+
+            updatePreferencesCard();
+          });
+        });
+      }
+
+      function updatePreferencesCard() {
+        const card = document.getElementById("preferencesCard");
+        card.style.display = "block";
+
+        // Helper to get the value, correctly checking for both 'outfitType' (JS key) and 'outfit_type' (DB key if needed)
+        const getSelectionValue = (key) =>
+          userSelections[key] || userSelections[key.replace("_", "T")] || "-";
+
+        // Helper to update the text content
+        const updatePref = (id, label, value) => {
+          document.getElementById(
+            id
+          ).innerHTML = `<strong>${label}:</strong> ${value}`;
+        };
+
+        updatePref("prefGender", "Gender", getSelectionValue("gender"));
+        updatePref("prefOutfit", "Type", getSelectionValue("outfitType"));
+        updatePref("prefUpper", "Upper", getSelectionValue("upper"));
+        updatePref("prefPants", "Pants", getSelectionValue("pants"));
+        updatePref("prefShoes", "Shoes", getSelectionValue("shoes"));
+      }
+
+      /** Initializes the application, fetches previous data, and sets up event listeners. */
+      async function initializeApp() {
+        const userId = await getUserId();
+        if (!userId) {
+          notify("warning", "Please log in to save your preferences.");
+          // In a production app, redirect to login here.
+          return;
+        }
+
+        // 1. Fetch previous preferences
+        previousPreferences = await fetchPreviousPreferences(userId);
+
+        // 2. Set up event listeners for all steps (Note: using DB column names for setup keys)
+        setupSelection("step-gender", "step-outfit", "gender");
+        setupSelection("step-outfit", "step-upper", "outfit_type"); // Use DB column name for fetching previous pref
+        setupSelection("step-upper", "step-pants", "upper");
+        setupSelection("step-pants", "step-shoes", "pants");
+        setupSelection("step-shoes", null, "shoes");
+
+        // 3. Setup Save Button
+        document
+          .getElementById("savePreferencesBtn")
+          .addEventListener("click", async (e) => {
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Saving...`;
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            // Use the keys matching the database column names for insertion
+            const { error } = await supabase
+              .from("user_preferences_simple")
+              .insert([
+                {
+                  user_id: userId,
+                  gender: userSelections.gender,
+                  outfit_type: userSelections.outfitType, // Mapped back from JS convention
+                  upper: userSelections.upper,
+                  pants: userSelections.pants,
+                  shoes: userSelections.shoes,
+                },
+              ]);
+
+            if (error) {
+              notify("error", "Failed to save preferences: " + error.message);
+              btn.disabled = false;
+              btn.innerHTML = `<i class="fas fa-cloud-upload-alt mr-2"></i> Save Preferences & Finish`;
+              return;
+            }
+
+            notify("success", "Preferences Saved!");
+            btn.innerHTML = `✅ Saved! Redirecting...`;
+            setTimeout(() => (window.location.href = "./dashboard.html"), 1500);
+          });
+
+        // Initial call to show the first step
+        document.getElementById("step-gender").classList.remove("hidden");
+      }
+
+      document.addEventListener("DOMContentLoaded", initializeApp);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings | DressMate Admin</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f7f7f7;
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      .main-container {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+      .card-container {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        border: 1px solid #fce7f3;
+      }
+      .card-container:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+      }
+
+      input:focus,
+      button:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.5); /* Focus ring for pink-700 */
+      }
+    </style>
+  </head>
+
+  <body class="flex main-container">
+    <div
+      id="mobile-overlay"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-30 hidden lg:hidden transition-opacity duration-300"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <aside
+      id="sidebar"
+      class="fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out bg-white w-64 flex flex-col z-40 shadow-xl border-r border-pink-100"
+    >
+      <div
+        class="p-6 flex items-center justify-center border-b border-pink-100 h-20"
+      >
+        <img
+          src="../../assets/logo.png"
+          alt="DressMate Logo"
+          class="w-10 h-10 mr-3"
+        />
+        <span class="text-xl font-bold text-pink-700">DressMate Admin</span>
+      </div>
+
+      <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
+        <a
+          href="./dashboard.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-home w-5 mr-3"></i>
+          Dashboard
+        </a>
+        <a
+          href="./users.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-users w-5 mr-3"></i>
+          Users
+        </a>
+        <a
+          href="./reports.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-chart-line w-5 mr-3"></i>
+          Reports
+        </a>
+        <a
+          href="./settings.html"
+          class="flex items-center p-3 rounded-xl bg-pink-100 text-pink-700 font-semibold hover:bg-pink-200 transition duration-200"
+        >
+          <i class="fas fa-cog w-5 mr-3"></i>
+          Settings
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-pink-100">
+        <button
+          id="logoutButton"
+          class="w-full flex items-center justify-center p-3 rounded-xl bg-pink-600 text-white font-semibold hover:bg-pink-700 transition duration-200 shadow-lg"
+        >
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <div class="flex-1 lg:ml-64 flex flex-col min-h-screen overflow-hidden">
+      <header
+        class="bg-white shadow-md lg:shadow-none border-b border-pink-100 h-20 flex items-center justify-between p-4 lg:p-6 sticky top-0 z-20"
+      >
+        <button
+          id="sidebarToggle"
+          class="text-pink-600 lg:hidden focus:outline-none"
+          onclick="toggleSidebar()"
+        >
+          <i class="fas fa-bars text-2xl"></i>
+        </button>
+        <h2 class="text-2xl font-bold text-gray-800 hidden lg:block">
+          Settings
+        </h2>
+
+        <div class="flex items-center space-x-3">
+          <span
+            class="text-sm font-medium text-gray-600 hidden sm:block"
+            id="adminEmail"
+          >
+            Loading...
+          </span>
+          <div
+            id="adminAvatar"
+            class="w-10 h-10 bg-pink-200 rounded-full flex items-center justify-center text-pink-700 font-bold text-lg"
+          ></div>
+        </div>
+      </header>
+
+      <main class="flex-grow p-4 lg:p-8">
+        <div class="mb-8">
+          <h1
+            class="text-3xl font-bold text-pink-700 mb-1"
+            data-aos="fade-right"
+          >
+            Admin Profile & Security
+          </h1>
+          <p class="text-gray-600" data-aos="fade-right" data-aos-delay="100">
+            Manage your account information and password.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="card-container" data-aos="fade-up">
+            <h3
+              class="text-xl font-semibold text-gray-800 mb-6 flex items-center"
+            >
+              <i class="fas fa-user-circle mr-3 text-pink-500"></i> Profile
+              Information
+            </h3>
+            <form id="profileForm" class="space-y-4">
+              <div>
+                <label
+                  for="name"
+                  class="block text-sm font-medium text-gray-700"
+                  >Full Name</label
+                >
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-pink-500 focus:border-pink-500 transition duration-150 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="email"
+                  class="block text-sm font-medium text-gray-700"
+                  >Email Address (Cannot be changed)</label
+                >
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  disabled
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-lg shadow-sm sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="phone_number"
+                  class="block text-sm font-medium text-gray-700"
+                  >Phone Number (Optional)</label
+                >
+                <input
+                  type="text"
+                  id="phone_number"
+                  name="phone_number"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-pink-500 focus:border-pink-500 transition duration-150 sm:text-sm"
+                />
+              </div>
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  id="updateProfileButton"
+                  class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 transition duration-200"
+                >
+                  <i class="fas fa-save mr-2"></i> Update Profile
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div
+            class="card-container h-fit lg:mt-10"
+            data-aos="fade-up"
+            data-aos-delay="100"
+          >
+            <h3
+              class="text-xl font-semibold text-gray-800 mb-6 flex items-center"
+            >
+              <i class="fas fa-lock mr-3 text-pink-500"></i> Change Password
+            </h3>
+            <form id="passwordForm" class="space-y-4">
+              <div>
+                <label
+                  for="current_password"
+                  class="block text-sm font-medium text-gray-700"
+                  >Current Password</label
+                >
+                <input
+                  type="password"
+                  id="current_password"
+                  name="current_password"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-pink-500 focus:border-pink-500 transition duration-150 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="new_password"
+                  class="block text-sm font-medium text-gray-700"
+                  >New Password</label
+                >
+                <input
+                  type="password"
+                  id="new_password"
+                  name="new_password"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-pink-500 focus:border-pink-500 transition duration-150 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label
+                  for="confirm_password"
+                  class="block text-sm font-medium text-gray-700"
+                  >Confirm New Password</label
+                >
+                <input
+                  type="password"
+                  id="confirm_password"
+                  name="confirm_password"
+                  required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-pink-500 focus:border-pink-500 transition duration-150 sm:text-sm"
+                />
+              </div>
+              <div class="pt-4">
+                <button
+                  type="submit"
+                  id="updatePasswordButton"
+                  class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200"
+                >
+                  <i class="fas fa-key mr-2"></i> Change Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+      AOS.init();
+
+      const PRIMARY_COLOR = "#db2777"; // pink-700
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co"; // Replace with your URL
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo"; // Replace with your public key
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      function notify(icon, title, text) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          text: text,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "swal2-popup",
+            title: "swal2-title",
+          },
+        });
+      }
+
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("mobile-overlay");
+
+      function toggleSidebar() {
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      }
+
+      let currentAdminAuthId = null;
+
+      async function fetchAdminProfile(user) {
+        try {
+          const { data, error } = await supabaseClient
+            .from("admin_users_secure")
+            .select("name, email, phone_number")
+            .eq("auth_id", user.id)
+            .single();
+
+          if (error && error.code !== "PGRST116") throw error;
+
+          if (data) {
+            document.getElementById("name").value = data.name || "";
+            document.getElementById("email").value = data.email || user.email;
+            document.getElementById("phone_number").value =
+              data.phone_number || "";
+          } else {
+            document.getElementById("email").value = user.email;
+            notify(
+              "warning",
+              "Profile Not Found",
+              "Admin details missing from secure table. Please contact support."
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching admin profile:", error);
+          notify(
+            "error",
+            "Fetch Failed",
+            "Could not load profile data: " + error.message
+          );
+        }
+      }
+
+      document
+        .getElementById("profileForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const button = document.getElementById("updateProfileButton");
+          button.disabled = true;
+          button.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i> Updating...';
+
+          const name = document.getElementById("name").value.trim();
+          const phone_number = document
+            .getElementById("phone_number")
+            .value.trim();
+
+          if (!name) {
+            notify("warning", "Missing Field", "Full Name is required.");
+            button.disabled = false;
+            button.innerHTML =
+              '<i class="fas fa-save mr-2"></i> Update Profile';
+            return;
+          }
+
+          try {
+            const { data, error } = await supabaseClient
+              .from("admin_users_secure")
+              .update({
+                name: name,
+                phone_number: phone_number || null,
+              })
+              .eq("auth_id", currentAdminAuthId)
+              .select();
+
+            if (error) throw error;
+
+            notify(
+              "success",
+              "Profile Updated!",
+              "Your details have been successfully saved."
+            );
+            document.getElementById("adminAvatar").textContent = name
+              .charAt(0)
+              .toUpperCase();
+          } catch (error) {
+            console.error("Error updating admin profile:", error);
+            notify(
+              "error",
+              "Update Failed",
+              "Could not update profile: " + error.message
+            );
+          } finally {
+            button.disabled = false;
+            button.innerHTML =
+              '<i class="fas fa-save mr-2"></i> Update Profile';
+          }
+        });
+
+      document
+        .getElementById("passwordForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const button = document.getElementById("updatePasswordButton");
+          button.disabled = true;
+          button.innerHTML =
+            '<i class="fas fa-spinner fa-spin mr-2"></i> Changing...';
+
+          const currentPassword =
+            document.getElementById("current_password").value;
+          const newPassword = document.getElementById("new_password").value;
+          const confirmPassword =
+            document.getElementById("confirm_password").value;
+
+          if (newPassword !== confirmPassword) {
+            notify(
+              "error",
+              "Error",
+              "New Password and Confirmation do not match."
+            );
+            document.getElementById("passwordForm").reset(); // Reset fields on mismatch
+            button.disabled = false;
+            button.innerHTML =
+              '<i class="fas fa-key mr-2"></i> Change Password';
+            return;
+          }
+
+          if (newPassword.length < 6) {
+            notify(
+              "warning",
+              "Weak Password",
+              "New password must be at least 6 characters long."
+            );
+            document.getElementById("passwordForm").reset(); // Reset fields on weak password
+            button.disabled = false;
+            button.innerHTML =
+              '<i class="fas fa-key mr-2"></i> Change Password';
+            return;
+          }
+
+          if (!currentPassword) {
+            notify(
+              "warning",
+              "Missing Field",
+              "You must enter your current password."
+            );
+            document.getElementById("passwordForm").reset(); // Reset fields if current password is empty
+            button.disabled = false;
+            button.innerHTML =
+              '<i class="fas fa-key mr-2"></i> Change Password';
+            return;
+          }
+
+          try {
+            const {
+              data: { user },
+            } = await supabaseClient.auth.getUser();
+            const email = user?.email;
+
+            if (!email)
+              throw new Error(
+                "Could not retrieve admin email for re-authentication."
+              );
+
+            // 1. Attempt to re-sign in the user with their CURRENT password.
+            const { error: signInError } =
+              await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: currentPassword,
+              });
+
+            if (signInError) {
+              throw new Error("The current password you entered is incorrect.");
+            }
+
+            const { error: updateError } = await supabaseClient.auth.updateUser(
+              {
+                password: newPassword,
+              }
+            );
+
+            if (updateError) {
+              throw new Error(
+                updateError.message ||
+                  "Failed to update password. Please try again or re-login."
+              );
+            }
+
+            document.getElementById("passwordForm").reset();
+            notify(
+              "success",
+              "Success!",
+              "Your password has been successfully changed."
+            );
+          } catch (error) {
+            console.error("Password update error:", error);
+            notify("error", "Change Failed", error.message);
+            document.getElementById("passwordForm").reset();
+          } finally {
+            button.disabled = false;
+            button.innerHTML =
+              '<i class="fas fa-key mr-2"></i> Change Password';
+          }
+        });
+
+      async function checkAuthAndLoadData() {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabaseClient.auth.getUser();
+
+        if (!user || authError) {
+          window.location.href = "./login.html";
+          return;
+        }
+
+        const { count, error: adminCheckError } = await supabaseClient
+          .from("admin_users_secure")
+          .select("id", { count: "exact", head: true })
+          .eq("auth_id", user.id);
+
+        if (adminCheckError && adminCheckError.code !== "PGRST116") {
+          console.error("Admin Check RLS/DB Error:", adminCheckError);
+        }
+
+        if (count === 0) {
+          await supabaseClient.auth.signOut();
+          notify(
+            "error",
+            "Access Denied",
+            "You are not authorized to view this page."
+          );
+          setTimeout(() => {
+            window.location.href = "../login.html";
+          }, 1500);
+          return;
+        }
+
+        currentAdminAuthId = user.id;
+
+        const adminEmail = user.email || "Admin";
+        const initial = adminEmail.charAt(0).toUpperCase();
+
+        document.getElementById("adminEmail").textContent = adminEmail;
+        document.getElementById("adminAvatar").textContent = initial;
+
+        fetchAdminProfile(user);
+      }
+
+      document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) {
+            notify(
+              "error",
+              "Logout Failed",
+              "Could not log out. Try refreshing the page."
+            );
+            return;
+          }
+          notify("info", "Logged Out", "Redirecting to login...");
+          setTimeout(() => {
+            window.location.href = "./login.html";
+          }, 500);
+        });
+
+      checkAuthAndLoadData();
+    </script>
+  </body>
+</html>

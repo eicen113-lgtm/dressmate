@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Clothes | DressMate</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+
+    <link rel="icon" type="image/png" href="../assets/logo.png" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(180deg, #ffeaf4 0%, #fff 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 182, 193, 0.3);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 25px rgba(255, 182, 193, 0.3);
+      }
+
+      button {
+        background-color: #ec4899;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      button:hover {
+        background-color: #db2777;
+      }
+
+      .clothes-card {
+        background: #fff;
+        border-radius: 15px;
+        padding: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden; /* Ensure content stays inside */
+      }
+
+      .clothes-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(255, 182, 193, 0.25);
+      }
+
+      .clothes-card .delete-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #ec4899;
+        font-size: 14px;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.2s ease-in-out;
+      }
+
+      .clothes-card:hover .delete-btn {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      .clothes-card .delete-btn:hover {
+        background-color: #db2777;
+        color: white;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header
+      class="flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md shadow-sm fixed w-full z-50"
+    >
+      <div class="flex items-center gap-3">
+        <a
+          href="./dashboard.html"
+          class="text-gray-700 hover:text-pink-600 flex items-center gap-2 transition font-medium"
+        >
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+        <h1 class="text-xl font-semibold text-pink-600">Upload Clothes</h1>
+      </div>
+    </header>
+
+    <main class="flex flex-col md:flex-row px-6 pt-24 gap-6 max-w-7xl mx-auto">
+      <div class="md:w-1/2 glass-card" data-aos="fade-right">
+        <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">
+          Add New Clothing
+        </h2>
+        <form id="uploadForm" class="flex flex-col gap-4">
+          <label class="font-medium text-gray-700">Clothing Type</label>
+          <select
+            id="clothingType"
+            class="p-3 border rounded-lg focus:ring-2 focus:ring-pink-300"
+            required
+          >
+            <option value="">Select type</option>
+            <option value="upper">Upper</option>
+            <option value="pants">Pants</option>
+            <option value="shoes">Shoes</option>
+            <option value="accessory">Accessory</option>
+            <option value="outerwear">Outerwear</option>
+          </select>
+
+          <label class="font-medium text-gray-700">Description</label>
+          <input
+            type="text"
+            id="clothingDesc"
+            placeholder="e.g., Blue Cotton T-shirt"
+            class="p-3 border rounded-lg focus:ring-2 focus:ring-pink-300"
+          />
+
+          <label class="font-medium text-gray-700">Style</label>
+          <select
+            id="clothingStyle"
+            class="p-3 border rounded-lg focus:ring-2 focus:ring-pink-300"
+            required
+          >
+            <option value="">Select style</option>
+            <option value="casual">Casual</option>
+            <option value="OG">OG</option>
+            <option value="formal">Formal</option>
+            <option value="sporty">Sporty</option>
+            <option value="streetwear">Streetwear</option>
+          </select>
+
+          <label class="font-medium text-gray-700">Clothing Image</label>
+          <input
+            type="file"
+            id="clothingImage"
+            accept="image/*"
+            required
+            class="p-3 border rounded-lg focus:ring-2 focus:ring-pink-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100"
+          />
+
+          <button
+            type="submit"
+            id="uploadButton"
+            class="w-full bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-full font-semibold transition shadow-md flex items-center justify-center gap-2"
+          >
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Clothing
+          </button>
+        </form>
+        <p id="status" class="text-center mt-3 text-sm text-gray-600"></p>
+      </div>
+
+      <div class="md:w-1/2" data-aos="fade-left">
+        <h2 class="text-2xl font-bold text-pink-600 mb-6 text-center">
+          Added Clothes
+        </h2>
+        <div
+          id="addedClothes"
+          class="grid grid-cols-1 sm:grid-cols-2 gap-6"
+        ></div>
+        <p
+          id="clothes-status"
+          class="text-center mt-3 text-sm text-gray-600"
+        ></p>
+      </div>
+    </main>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
+
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm";
+
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const STATUS_ELEMENT = document.getElementById("status");
+      const UPLOAD_FORM = document.getElementById("uploadForm");
+      const UPLOAD_BUTTON = document.getElementById("uploadButton");
+      const CLOTHES_CONTAINER = document.getElementById("addedClothes");
+
+      // CONFIGURATION 
+      const BUCKET_NAME = "upload-clothes";
+      // No sub-folder is used. Files go directly to the bucket root.
+     
+
+      /**
+       * Shows a SweetAlert notification.
+       * @param {string} icon - 'success', 'error', 'warning', 'info', 'question'
+       * @param {string} title - The main title text.
+       */
+      function notify(icon, title) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          showConfirmButton: false,
+          timer: 2000,
+          toast: true,
+          position: "top-end",
+        });
+      }
+
+      /**
+       * Gets the user's public.users.id (UUID) from their auth session.
+       */
+      async function getUserId() {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return null;
+
+        const { data: profile, error } = await supabase
+          .from("users")
+          .select("id")
+          .eq("auth_id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user profile:", error);
+          return null;
+        }
+        return profile?.id;
+      }
+
+      /**
+       * Fetches and displays the user's clothes.
+       */
+      async function fetchClothes() {
+        const userId = await getUserId();
+        const clothesStatus = document.getElementById("clothes-status");
+        CLOTHES_CONTAINER.innerHTML = ""; // Clear existing content
+
+        if (!userId) {
+          CLOTHES_CONTAINER.innerHTML = `<p class="text-gray-500 text-center col-span-full">
+                                          <i class="fa-solid fa-lock text-pink-500 mr-2"></i> Please login to view your added clothes.
+                                        </p>`;
+          return;
+        }
+
+        clothesStatus.innerText = "Loading clothes...";
+
+        const { data: clothes, error: fetchError } = await supabase
+          .from("user_clothes")
+          .select("id, clothing_type, description, style, image_url")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+
+        if (fetchError) {
+          console.error("Error fetching clothes:", fetchError);
+          clothesStatus.innerText = "Failed to load clothes.";
+          notify("error", "Failed to load clothes.");
+          return;
+        }
+
+        clothesStatus.innerText = ""; // Clear status on success
+
+        if (!clothes || clothes.length === 0) {
+          CLOTHES_CONTAINER.innerHTML = `<p class="text-gray-500 text-center col-span-full">
+                                          <i class="fa-solid fa-shirt text-pink-500 mr-2"></i> No clothes added yet. Upload your first item!
+                                        </p>`;
+          return;
+        }
+
+        clothes.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "clothes-card flex flex-col";
+          card.innerHTML = `
+            <button title="Delete" class="delete-btn" data-id="${
+              item.id
+            }" data-url="${item.image_url}">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+            <div class="h-40 w-full mb-3 rounded-lg overflow-hidden border border-pink-100 bg-gray-100 flex items-center justify-center">
+              <img src="${item.image_url || "../assets/placeholder.png"}" 
+                   alt="${item.description || "Clothing Item"}" 
+                   class="object-cover w-full h-full">
+            </div>
+            <h3 class="font-bold text-pink-600 mb-1 capitalize text-lg">${
+              item.clothing_type
+            }</h3>
+            <p class="text-gray-600 mb-2 text-sm">${
+              item.description || "No description provided"
+            }</p>
+            <div class="flex items-center text-xs text-gray-500">
+              <i class="fa-solid fa-tag mr-1 text-pink-400"></i>
+              Style: <span class="capitalize ml-1 font-medium">${
+                item.style
+              }</span>
+            </div>
+          `;
+
+          card
+            .querySelector(".delete-btn")
+            .addEventListener("click", async (e) => {
+              const itemId = e.currentTarget.getAttribute("data-id");
+              const imageUrl = e.currentTarget.getAttribute("data-url");
+
+              const result = await Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#ec4899",
+                cancelButtonColor: "#9ca3af",
+                confirmButtonText: "Yes, delete it!",
+              });
+
+              if (!result.isConfirmed) return;
+
+              clothesStatus.innerText = "Deleting item...";
+              e.currentTarget.disabled = true;
+
+              const { error: deleteError } = await supabase
+                .from("user_clothes")
+                .delete()
+                .eq("id", itemId);
+
+              if (deleteError) {
+                notify("error", "Failed to delete item from database.");
+                console.error(deleteError);
+                clothesStatus.innerText = "Deletion failed (DB).";
+                e.currentTarget.disabled = false;
+                return;
+              }
+
+              try {
+                const urlPath = new URL(imageUrl).pathname;
+                // Extracts path after /storage/v1/object/public/upload-clothes/
+                const pathIndex = urlPath.indexOf(`/public/${BUCKET_NAME}/`);
+                const filePath = urlPath.substring(
+                  pathIndex + BUCKET_NAME.length + 8
+                );
+
+                const { error: storageError } = await supabase.storage
+                  .from(BUCKET_NAME)
+                  .remove([filePath]);
+
+                if (storageError) {
+                  console.warn(
+                    "Could not delete image from storage:",
+                    storageError
+                  );
+                }
+              } catch (e) {
+                console.warn(
+                  "Image URL parsing failed, skipping storage delete:",
+                  e
+                );
+              }
+
+              notify("success", "Item deleted successfully!");
+              fetchClothes(); 
+            });
+          CLOTHES_CONTAINER.appendChild(card);
+        });
+      }
+
+      UPLOAD_FORM.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        STATUS_ELEMENT.innerText = "Processing...";
+        UPLOAD_BUTTON.disabled = true; 
+
+        const userId = await getUserId();
+
+        const clothingType = document.getElementById("clothingType").value;
+        const desc = document.getElementById("clothingDesc").value || null;
+        const style = document.getElementById("clothingStyle").value;
+        const imageFile = document.getElementById("clothingImage").files[0];
+
+        if (!imageFile) {
+          STATUS_ELEMENT.innerText = "Please select an image file.";
+          UPLOAD_BUTTON.disabled = false;
+          return;
+        }
+
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random()
+          .toString(36)
+          .substring(2, 8)}.${fileExt}`;
+
+        STATUS_ELEMENT.innerText = "Uploading image...";
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from(BUCKET_NAME)
+          .upload(fileName, imageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) {
+          STATUS_ELEMENT.innerText = `Image upload failed: ${uploadError.message}.`;
+          notify("error", "Image upload failed!");
+          console.error("Storage Upload Error:", uploadError);
+          UPLOAD_BUTTON.disabled = false;
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from(BUCKET_NAME)
+          .getPublicUrl(fileName);
+
+        const imageUrl = publicUrlData.publicUrl;
+
+        if (!userId) {
+          STATUS_ELEMENT.innerText =
+            "Image uploaded successfully! (Login to save details)";
+          notify(
+            "info",
+            "Image uploaded! Login to save details to your wardrobe."
+          );
+          UPLOAD_FORM.reset();
+          UPLOAD_BUTTON.disabled = false;
+          return;
+        }
+
+        STATUS_ELEMENT.innerText = "Saving clothing details...";
+        const { error: insertError } = await supabase
+          .from("user_clothes")
+          .insert([
+            {
+              user_id: userId,
+              clothing_type: clothingType,
+              description: desc,
+              style: style,
+              image_url: imageUrl,
+            },
+          ]);
+
+        if (insertError) {
+          STATUS_ELEMENT.innerText =
+            "Failed to save clothing details. (The image was uploaded but not linked to your account.)";
+          notify("error", "Failed to save clothing details.");
+          console.error("DB Insert Error:", insertError);
+          await supabase.storage.from(BUCKET_NAME).remove([fileName]);
+          UPLOAD_BUTTON.disabled = false;
+          return;
+        }
+
+        UPLOAD_FORM.reset();
+        STATUS_ELEMENT.innerText = "";
+        notify("success", "Clothing added successfully! 👕");
+        fetchClothes();
+        UPLOAD_BUTTON.disabled = false;
+      });
+
+      document.addEventListener("DOMContentLoaded", fetchClothes);
+    </script>
+  </body>
+</html>

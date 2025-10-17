@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Closet Insight | DressMate</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="../assets/logo.png" />
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: #f7f7f9;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, #ffe4e9, #fff0f6);
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: 1px solid #ffdae2;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(255, 182, 193, 0.3);
+      }
+
+      .chart-container {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+      }
+
+      /* Table Styles for Visual Appeal */
+      .activity-table {
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+
+      .activity-table th {
+        background-color: #fce7f3;
+        color: #9d174d;
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      .activity-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f3e8ff;
+        font-size: 0.875rem;
+        color: #333;
+      }
+
+      .item-image-preview {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #f3e8ff;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-50 min-h-screen">
+    <header
+      class="flex items-center justify-between px-6 py-4 bg-white/70 backdrop-blur-md shadow-sm fixed w-full top-0 z-50"
+    >
+      <div class="flex items-center gap-3">
+        <a
+          href="./dashboard.html"
+          class="text-gray-700 hover:text-pink-600 flex items-center gap-2 transition font-medium"
+        >
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+        <h1 class="text-xl font-semibold text-pink-600">Closet Insights</h1>
+      </div>
+    </header>
+
+    <div class="px-6 pt-24 pb-12 max-w-7xl mx-auto">
+      <h1 class="text-3xl font-bold mb-2 text-gray-800">
+        Wardrobe Analytics 📊
+      </h1>
+      <p class="text-gray-600 mb-10">
+        Get real-time style stats and usage trends for your weekly outfits.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+        <div
+          class="stat-card p-6 rounded-2xl shadow flex flex-col items-center text-center"
+        >
+          <i class="fa-solid fa-layer-group text-pink-500 text-4xl mb-3"></i>
+          <h2 class="text-gray-700 font-semibold text-sm">
+            Total Planned Outfits
+          </h2>
+          <p id="totalOutfits" class="text-3xl font-bold mt-2 text-gray-900">
+            0
+          </p>
+        </div>
+        <div
+          class="stat-card p-6 rounded-2xl shadow flex flex-col items-center text-center"
+        >
+          <i class="fa-solid fa-shirt text-orange-500 text-4xl mb-3"></i>
+          <h2 class="text-gray-700 font-semibold text-sm">Most Worn Upper</h2>
+          <p
+            id="mostUpper"
+            class="text-xl font-bold mt-2 text-gray-900 truncate w-full px-2"
+          >
+            -
+          </p>
+        </div>
+        <div
+          class="stat-card p-6 rounded-2xl shadow flex flex-col items-center text-center"
+        >
+          <i
+            class="fa-solid fa-person-walking-luggage text-blue-500 text-4xl mb-3"
+          ></i>
+          <h2 class="text-gray-700 font-semibold text-sm">Most Worn Pants</h2>
+          <p
+            id="mostPants"
+            class="text-xl font-bold mt-2 text-gray-900 truncate w-full px-2"
+          >
+            -
+          </p>
+        </div>
+        <div
+          class="stat-card p-6 rounded-2xl shadow flex flex-col items-center text-center"
+        >
+          <i class="fa-solid fa-shoe-prints text-green-500 text-4xl mb-3"></i>
+          <h2 class="text-gray-700 font-semibold text-sm">Most Worn Shoes</h2>
+          <p
+            id="mostShoes"
+            class="text-xl font-bold mt-2 text-gray-900 truncate w-full px-2"
+          >
+            -
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div class="chart-container lg:col-span-1">
+          <h2 class="text-gray-700 font-semibold mb-4 text-center text-xl">
+            Item Distribution
+          </h2>
+          <div id="apexDonutChart"></div>
+        </div>
+
+        <div class="chart-container lg:col-span-2">
+          <h2 class="text-gray-700 font-semibold mb-4 text-center text-xl">
+            Last 7 Days Outfit Trend
+          </h2>
+          <div id="apexLineChart"></div>
+        </div>
+      </div>
+
+      <div class="mt-16 border-t pt-8 border-pink-100">
+        <h2
+          class="text-2xl font-bold text-pink-600 mb-6 flex items-center gap-2"
+        >
+          <i class="fa-solid fa-history"></i> Recent Activity
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">
+              Latest Weekly Outfit Plans
+            </h3>
+            <div class="overflow-x-auto">
+              <table
+                class="min-w-full divide-y divide-pink-50 activity-table rounded-lg overflow-hidden"
+              >
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Outfit Name</th>
+                    <th>Upper/Pants/Shoes</th>
+                  </tr>
+                </thead>
+                <tbody id="latestOutfitsBody">
+                  <tr>
+                    <td colspan="3" class="text-center text-gray-500">
+                      Loading plans...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">
+              Latest Closet Uploads
+            </h3>
+            <div class="overflow-x-auto">
+              <table
+                class="min-w-full divide-y divide-pink-50 activity-table rounded-lg overflow-hidden"
+              >
+                <thead>
+                  <tr>
+                    <th>Date Added</th>
+                    <th>Type</th>
+                    <th>Image</th>
+                  </tr>
+                </thead>
+                <tbody id="latestClothesBody">
+                  <tr>
+                    <td colspan="3" class="text-center text-gray-500">
+                      Loading clothes...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-16 border-t pt-8 border-pink-100">
+        <h2
+          class="text-2xl font-bold text-pink-600 mb-4 flex items-center gap-2"
+        >
+          <i class="fa-solid fa-user-circle"></i> Profile Details
+        </h2>
+        <div
+          class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 max-w-lg"
+        >
+          <div
+            class="flex justify-between items-center py-2 border-b border-gray-100"
+          >
+            <span class="font-medium text-gray-500">Full Name:</span>
+            <span id="profileName" class="font-semibold text-gray-800"
+              >Loading...</span
+            >
+          </div>
+          <div
+            class="flex justify-between items-center py-2 border-b border-gray-100"
+          >
+            <span class="font-medium text-gray-500">Email:</span>
+            <span id="profileEmail" class="font-semibold text-gray-800"
+              >Loading...</span
+            >
+          </div>
+          <div
+            class="flex justify-between items-center py-2 border-b border-gray-100"
+          >
+            <span class="font-medium text-gray-500">Registered On:</span>
+            <span id="profileRegistered" class="font-semibold text-gray-800"
+              >Loading...</span
+            >
+          </div>
+          <div class="flex justify-between items-center py-2">
+            <span class="font-medium text-gray-500">Last Sign-in:</span>
+            <span id="profileLastSignIn" class="font-semibold text-gray-800"
+              >Loading...</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm";
+
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      let donutChart = null;
+      let lineChart = null;
+      let currentUserId = null;
+      const MAX_TABLE_ENTRIES = 5;
+
+      function notify(icon, title) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          showConfirmButton: false,
+          timer: 2000,
+          toast: true,
+          position: "top-end",
+          customClass: {
+            container: "z-50",
+          },
+        });
+      }
+
+      const mostFrequent = (arr) => {
+        const filteredArr = arr.filter(
+          (i) => i && i.trim() !== "" && i.trim() !== "-"
+        );
+        if (filteredArr.length === 0) return "N/A";
+        const freq = {};
+        filteredArr.forEach((i) => (freq[i] = (freq[i] || 0) + 1));
+        const most = Object.keys(freq).reduce(
+          (a, b) => (freq[a] > freq[b] ? a : b),
+          ""
+        );
+        return most.length > 20 ? most.substring(0, 17) + "..." : most;
+      };
+
+      const formatDate = (dateString, includeTime = false) => {
+        if (!dateString) return "N/A";
+        try {
+          const date = new Date(dateString);
+          return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            ...(includeTime && { hour: "2-digit", minute: "2-digit" }),
+          });
+        } catch (e) {
+          return dateString.split("T")[0];
+        }
+      };
+
+      const renderImage = (url, altText, iconClass) => {
+        if (url) {
+          return `<img src="${url}" alt="${altText}" class="item-image-preview">`;
+        }
+        return `<div class="item-image-preview flex items-center justify-center bg-pink-100 text-pink-400">
+                        <i class="fa-solid ${iconClass}"></i>
+                    </div>`;
+      };
+
+
+      function initDonutChart(data) {
+        const chartOptions = {
+          series: data.counts,
+          labels: data.labels,
+          chart: {
+            type: "donut",
+            height: 350,
+            toolbar: { show: false },
+          },
+          colors: ["#EC4899", "#F97316", "#3B82F6"],
+          plotOptions: {
+            pie: {
+              donut: {
+                size: "65%",
+                labels: {
+                  show: true,
+                  total: {
+                    show: true,
+                    label: "Total Items",
+                    formatter: function (w) {
+                      return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                    },
+                    color: "#555",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                  },
+                },
+              },
+            },
+          },
+          dataLabels: { enabled: true, dropShadow: { enabled: false } },
+          legend: { position: "bottom" },
+          responsive: [
+            {
+              breakpoint: 480,
+              options: {
+                chart: { width: 280 },
+                legend: { position: "bottom" },
+              },
+            },
+          ],
+        };
+
+        if (donutChart) {
+          donutChart.updateOptions(chartOptions);
+        } else {
+          donutChart = new ApexCharts(
+            document.querySelector("#apexDonutChart"),
+            chartOptions
+          );
+          donutChart.render();
+        }
+      }
+
+      function initLineChart(data) {
+        // Fallback for no data: generate 7 days of labels and 0 counts
+        if (data.counts.length === 0) {
+          const today = new Date();
+          const last7DaysData = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(today);
+            d.setDate(today.getDate() - (6 - i));
+            return d;
+          });
+          data.labels = last7DaysData.map((d) =>
+            d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          );
+          data.counts = Array(7).fill(0);
+        }
+
+        const chartOptions = {
+          series: [
+            {
+              name: "Outfits Planned",
+              data: data.counts,
+            },
+          ],
+          chart: {
+            type: "line",
+            height: 350,
+            toolbar: { show: false },
+          },
+          colors: ["#DB2777"],
+          stroke: {
+            curve: "smooth",
+            width: 4,
+          },
+          markers: { size: 6, colors: ["#EC4899"] },
+          xaxis: {
+            categories: data.labels,
+            title: { text: "Date", style: { color: "#888" } },
+          },
+          yaxis: {
+            min: 0,
+            // Use an integer max value for the y-axis
+            max: Math.max(1, ...data.counts, 1),
+            labels: {
+              formatter: (val) => (val % 1 === 0 ? val : ""), // Only show whole numbers
+            },
+            tickAmount: Math.max(1, ...data.counts, 1),
+            title: { text: "Number of Plans", style: { color: "#888" } },
+          },
+          grid: { borderColor: "#f1f1f1" },
+          tooltip: {
+            x: { format: "dd MMM" },
+            y: {
+              formatter: function (val) {
+                return Math.round(val) + " Outfits";
+              },
+            },
+          },
+        };
+
+        if (lineChart) {
+          lineChart.updateOptions(chartOptions);
+        } else {
+          lineChart = new ApexCharts(
+            document.querySelector("#apexLineChart"),
+            chartOptions
+          );
+          lineChart.render();
+        }
+      }
+
+
+      function renderLatestOutfitsTable(data) {
+        const tbody = document.getElementById("latestOutfitsBody");
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="3" class="text-center text-gray-500 py-4">No outfit plans found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data
+          .map((o) => {
+            const upperImg = renderImage(o.upper_image, "Upper", "fa-shirt");
+            const pantsImg = renderImage(o.pants_image, "Pants", "fa-person");
+            const shoesImg = renderImage(
+              o.shoes_image,
+              "Shoes",
+              "fa-shoe-prints"
+            );
+
+            return `
+                <tr>
+                    <td class="whitespace-nowrap">${formatDate(
+                      o.outfit_date
+                    )}</td>
+                    <td class="font-medium">${o.outfit_name.substring(
+                      0,
+                      30
+                    )}</td>
+                    <td>
+                        <div class="flex space-x-2">
+                            ${upperImg}
+                            ${pantsImg}
+                            ${shoesImg}
+                        </div>
+                    </td>
+                </tr>
+                `;
+          })
+          .join("");
+      }
+
+      function renderLatestClothesTable(data) {
+        const tbody = document.getElementById("latestClothesBody");
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="3" class="text-center text-gray-500 py-4">No clothes uploaded yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data
+          .map((c) => {
+            const itemImage = renderImage(
+              c.image_url,
+              c.clothing_type,
+              "fa-tag"
+            );
+            return `
+                <tr>
+                    <td class="whitespace-nowrap">${formatDate(
+                      c.created_at
+                    )}</td>
+                    <td class="font-medium">${c.clothing_type || "N/A"}</td>
+                    <td>${itemImage}</td>
+                </tr>
+                `;
+          })
+          .join("");
+      }
+
+
+      async function loadClosetInsights(userId) {
+        // Fetch All Outfits for Stats/Charts/Latest Table
+        const { data: outfits, error: outfitError } = await supabase
+          .from("weekly_outfits")
+          .select(
+            "outfit_date, outfit_name, upper_desc, pants_desc, shoes_desc, upper_image, pants_image, shoes_image"
+          )
+          .eq("user_id", userId)
+          .order("outfit_date", { ascending: false });
+
+        // Fetch Latest Uploaded Clothes
+        const { data: clothes, error: clothesError } = await supabase
+          .from("user_clothes")
+          .select("clothing_type, description, created_at, image_url")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(MAX_TABLE_ENTRIES);
+
+        if (outfitError || clothesError) {
+          console.error("Error fetching data:", outfitError || clothesError);
+          notify("error", "Failed to load all insights data.");
+          return;
+        }
+
+        const hasOutfitData = outfits && outfits.length > 0;
+
+        if (hasOutfitData) {
+          const upperDescriptions = outfits
+            .map((o) => o.upper_desc)
+            .filter((desc) => desc);
+          const pantsDescriptions = outfits
+            .map((o) => o.pants_desc)
+            .filter((desc) => desc);
+          const shoesDescriptions = outfits
+            .map((o) => o.shoes_desc)
+            .filter((desc) => desc);
+
+          document.getElementById("totalOutfits").innerText = outfits.length;
+          document.getElementById("mostUpper").innerText =
+            mostFrequent(upperDescriptions);
+          document.getElementById("mostPants").innerText =
+            mostFrequent(pantsDescriptions);
+          document.getElementById("mostShoes").innerText =
+            mostFrequent(shoesDescriptions);
+
+          // Donut Chart
+          const donutData = {
+            labels: ["Upper", "Pants", "Shoes"],
+            counts: [
+              upperDescriptions.length,
+              pantsDescriptions.length,
+              shoesDescriptions.length,
+            ],
+          };
+          initDonutChart(donutData);
+
+          // Line Chart (Last 7 Days)
+          const today = new Date();
+          // Set to start of the day for consistent comparison
+          today.setHours(0, 0, 0, 0);
+
+          // Create an array for the last 7 days (day 0 is 6 days ago, day 6 is today)
+          const last7DaysData = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(today);
+            d.setDate(today.getDate() - (6 - i));
+            return { date: d, count: 0, dateString: d.toDateString() };
+          });
+
+          // Aggregate outfit counts by date
+          outfits.forEach((o) => {
+            const outfitDate = new Date(o.outfit_date);
+            // Set to start of the day for consistent comparison
+            outfitDate.setHours(0, 0, 0, 0);
+
+            const dayIndex = last7DaysData.findIndex(
+              (day) => day.dateString === outfitDate.toDateString()
+            );
+
+            if (dayIndex !== -1) {
+              last7DaysData[dayIndex].count++;
+            }
+          });
+
+          const lineData = {
+            labels: last7DaysData.map((d) =>
+              d.date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              })
+            ),
+            counts: last7DaysData.map((d) => d.count),
+          };
+          initLineChart(lineData);
+        } else {
+          // Handle no data case gracefully
+          document.getElementById("totalOutfits").innerText = 0;
+          document.getElementById("mostUpper").innerText = "N/A";
+          document.getElementById("mostPants").innerText = "N/A";
+          document.getElementById("mostShoes").innerText = "N/A";
+
+          // Initialize charts with zero data, but correct labels for Line Chart
+          initDonutChart({
+            labels: ["Upper", "Pants", "Shoes"],
+            counts: [0, 0, 0],
+          });
+          // Explicitly call with empty arrays to trigger default 7-day labels
+          initLineChart({ labels: [], counts: [] });
+        }
+
+        renderLatestOutfitsTable(
+          outfits ? outfits.slice(0, MAX_TABLE_ENTRIES) : []
+        );
+        renderLatestClothesTable(clothes);
+      }
+
+
+      async function setupRealtimeSubscription(userId) {
+        const outfitChannelName = `closet_insights_outfits_${userId}`;
+        await supabase.removeChannel(supabase.channel(outfitChannelName));
+
+        supabase
+          .channel(outfitChannelName)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "weekly_outfits",
+              filter: `user_id=eq.${userId}`,
+            },
+            (payload) => {
+              console.log(
+                "Real-time outfit update received:",
+                payload.eventType
+              );
+              notify("info", `Outfit Update: ${payload.eventType} detected!`);
+              loadClosetInsights(userId);
+            }
+          )
+          .subscribe();
+
+        const clothesChannelName = `closet_insights_clothes_${userId}`;
+        await supabase.removeChannel(supabase.channel(clothesChannelName));
+
+        supabase
+          .channel(clothesChannelName)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "user_clothes",
+              filter: `user_id=eq.${userId}`,
+            },
+            async (payload) => {
+              console.log(
+                "Real-time clothes update received:",
+                payload.eventType
+              );
+              notify("info", `Closet Update: ${payload.eventType} detected!`);
+
+              // Fetch the clothes data to update the table
+              const { data: clothes, error } = await supabase
+                .from("user_clothes")
+                .select("clothing_type, description, created_at, image_url")
+                .eq("user_id", userId)
+                .order("created_at", { ascending: false })
+                .limit(MAX_TABLE_ENTRIES);
+
+              if (!error) {
+                renderLatestClothesTable(clothes);
+              }
+            }
+          )
+          .subscribe();
+
+        console.log("Supabase Realtime subscriptions active.");
+      }
+
+
+      async function initializeApp() {
+        const { data: userData, error: userError } =
+          await supabase.auth.getUser();
+
+        if (userError || !userData.user) {
+          console.log("User not logged in. Stopping execution.");
+          return;
+        }
+
+        const authId = userData.user.id;
+        const registeredAt = userData.user.created_at;
+        const lastSignInAt = userData.user.last_sign_in_at;
+
+        const { data: profile } = await supabase
+          .from("users")
+          .select("id, full_name, email")
+          .eq("auth_id", authId)
+          .single();
+
+        if (!profile) {
+          notify("error", "User profile not found.");
+          return;
+        }
+
+        currentUserId = profile.id; // Store Supabase user ID
+
+        document.getElementById("profileName").textContent =
+          profile.full_name || "N/A";
+        document.getElementById("profileEmail").textContent =
+          profile.email || "N/A";
+        document.getElementById("profileRegistered").textContent =
+          formatDate(registeredAt);
+        document.getElementById("profileLastSignIn").textContent = formatDate(
+          lastSignInAt,
+          true
+        );
+
+        await loadClosetInsights(currentUserId);
+        setupRealtimeSubscription(currentUserId);
+      }
+
+      document.addEventListener("DOMContentLoaded", initializeApp);
+    </script>
+  </body>
+</html>

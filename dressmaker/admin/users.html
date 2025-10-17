@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users Management | DressMate Admin</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f7f7f7;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .card-container {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        border: 1px solid #fce7f3;
+      }
+      .card-container:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .table-fallback-message {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        color: #f59e0b;
+        font-weight: 500;
+        text-align: center;
+        padding: 1rem;
+        border: 1px dashed #fcd34d;
+        border-radius: 0.5rem;
+      }
+
+      .masked-email {
+        font-family: monospace;
+      }
+
+      .sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: #ecc0d7 #f3f4f6;
+      }
+
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb {
+        background-color: #db2777;
+        border-radius: 20px;
+      }
+    </style>
+  </head>
+
+  <body class="flex">
+    <div
+      id="mobile-overlay"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-30 hidden lg:hidden transition-opacity duration-300"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <aside
+      id="sidebar"
+      class="sidebar fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out bg-white w-64 flex flex-col z-40 shadow-xl border-r border-pink-100"
+    >
+      <div
+        class="p-6 flex items-center justify-center border-b border-pink-100 h-20"
+      >
+        <img
+          src="../../assets/logo.png"
+          alt="DressMate Logo"
+          class="w-10 h-10 mr-3"
+        />
+        <span class="text-xl font-bold text-pink-700">DressMate Admin</span>
+      </div>
+
+      <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
+        <a
+          href="./dashboard.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-home w-5 mr-3"></i>
+          Dashboard
+        </a>
+        <a
+          href="./users.html"
+          class="flex items-center p-3 rounded-xl bg-pink-100 text-pink-700 font-semibold hover:bg-pink-200 transition duration-200"
+        >
+          <i class="fas fa-users w-5 mr-3"></i>
+          Users
+        </a>
+        <a
+          href="reports.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-chart-line w-5 mr-3"></i>
+          Reports
+        </a>
+        <a
+          href="settings.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-cog w-5 mr-3"></i>
+          Settings
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-pink-100">
+        <button
+          id="logoutButton"
+          class="w-full flex items-center justify-center p-3 rounded-xl bg-pink-600 text-white font-semibold hover:bg-pink-700 transition duration-200 shadow-lg"
+        >
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <div class="flex-1 lg:ml-64 flex flex-col min-h-screen overflow-hidden">
+      <header
+        class="bg-white shadow-md lg:shadow-none border-b border-pink-100 h-20 flex items-center justify-between p-4 lg:p-6 sticky top-0 z-20"
+      >
+        <button
+          id="sidebarToggle"
+          class="text-pink-600 lg:hidden focus:outline-none"
+          onclick="toggleSidebar()"
+        >
+          <i class="fas fa-bars text-2xl"></i>
+        </button>
+        <h2 class="text-2xl font-bold text-gray-800 hidden lg:block">
+          Users Management
+        </h2>
+
+        <div class="flex items-center space-x-3">
+          <span
+            class="text-sm font-medium text-gray-600 hidden sm:block"
+            id="adminEmail"
+          >
+            Loading...
+          </span>
+          <div
+            id="adminAvatar"
+            class="w-10 h-10 bg-pink-200 rounded-full flex items-center justify-center text-pink-700 font-bold text-lg"
+          ></div>
+        </div>
+      </header>
+
+      <main class="flex-grow p-4 lg:p-8">
+        <div class="mb-8">
+          <h1
+            class="text-3xl font-bold text-pink-700 mb-1"
+            data-aos="fade-right"
+          >
+            User Management Console
+          </h1>
+          <p class="text-gray-600" data-aos="fade-right" data-aos-delay="100">
+            View, manage, and audit all registered users.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div
+            class="card-container flex flex-col items-start"
+            data-aos="fade-up"
+          >
+            <i class="fas fa-users text-3xl text-pink-500 mb-2"></i>
+            <p class="text-sm text-gray-500 font-medium">Total Users</p>
+            <span id="totalUsers" class="text-3xl font-bold text-gray-800"
+              >0</span
+            >
+          </div>
+          <div
+            class="card-container flex flex-col items-start"
+            data-aos="fade-up"
+            data-aos-delay="100"
+          >
+            <i class="fas fa-check-circle text-3xl text-green-500 mb-2"></i>
+            <p class="text-sm text-gray-500 font-medium">
+              Active Users (30 Days)
+            </p>
+            <span id="activeUsers" class="text-3xl font-bold text-gray-800"
+              >0</span
+            >
+          </div>
+          <div
+            class="card-container flex flex-col items-start"
+            data-aos="fade-up"
+            data-aos-delay="200"
+          >
+            <i class="fas fa-user-slash text-3xl text-red-500 mb-2"></i>
+            <p class="text-sm text-gray-500 font-medium">Recently Deleted</p>
+            <span id="deletedCount" class="text-3xl font-bold text-gray-800"
+              >N/A</span
+            >
+          </div>
+        </div>
+
+        <div
+          class="card-container overflow-x-auto"
+          data-aos="fade-up"
+          data-aos-delay="300"
+        >
+          <h3 class="text-xl font-semibold text-gray-800 mb-4">
+            User Accounts List
+          </h3>
+
+          <div id="usersTableContainer" class="w-full">
+            <div class="table-fallback-message">
+              <i class="fas fa-spinner fa-spin mr-2"></i> Loading user data...
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+      AOS.init();
+
+      // --- Constants and Initialization ---
+      const EXCLUDED_EMAIL = "dressmate@dress.com"; // Your Admin Email
+
+      function notify(icon, title, text) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          text: text,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "swal2-popup",
+            title: "swal2-title",
+          },
+        });
+      }
+
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("mobile-overlay");
+
+      function toggleSidebar() {
+        // Toggle classes for visibility and mobile responsiveness
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      }
+
+      // --- Supabase Initialization (!!! IMPORTANT: Use Service Role Key for Deletion !!!) ---
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      function maskEmail(email) {
+        if (!email || email.indexOf("@") === -1) return "N/A";
+
+        const [localPart, domain] = email.split("@");
+
+        if (localPart.length <= 2) {
+          return `${localPart[0]}***@${domain}`;
+        }
+
+        const firstChar = localPart.charAt(0);
+        const lastTwoChars = localPart.slice(-2);
+
+        const maskedLocal = firstChar + "*****" + lastTwoChars;
+
+        return `${maskedLocal}@${domain}`;
+      }
+
+      async function fetchCount(elementId, type) {
+        document.getElementById(elementId).textContent = "...";
+
+        try {
+          let count = 0;
+
+          if (type === "total") {
+            const { count: totalCount, error } = await supabaseClient
+              .from("users")
+              .select("auth_id", { count: "exact", head: true })
+              .neq("email", EXCLUDED_EMAIL); // Assuming 'email' is in public.users
+
+            if (error) throw error;
+            count = totalCount || 0;
+          } else if (type === "active") {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const { data, error } = await supabaseClient.rpc(
+              "get_active_user_count",
+              {
+                time_cutoff: thirtyDaysAgo.toISOString(),
+                excluded_email: EXCLUDED_EMAIL,
+              }
+            );
+
+            if (error) throw error;
+            // RPC data is the returned bigint value
+            count = data || 0;
+          }
+
+          document.getElementById(elementId).textContent = count;
+          return count;
+        } catch (error) {
+          console.error(`🚨 Supabase Error in ${type} count:`, error.message);
+          document.getElementById(elementId).textContent = "Err"; // Display the error state
+          return 0;
+        }
+      }
+
+      async function loadDashboardStats() {
+        fetchCount("totalUsers", "total");
+        fetchCount("activeUsers", "active");
+        document.getElementById("deletedCount").textContent = "N/A";
+      }
+
+      async function loadUsersTable() {
+        const tableContainer = document.getElementById("usersTableContainer");
+        tableContainer.innerHTML =
+          '<div class="table-fallback-message"><i class="fas fa-spinner fa-spin mr-2"></i> Loading user data...</div>';
+
+        // RPC to get user list, which should join auth.users data
+        const { data: users, error } = await supabaseClient.rpc(
+          "get_full_user_list"
+        );
+
+        if (error) {
+          console.error(
+            "🚨 Supabase RPC Error: get_full_user_list failed:",
+            error
+          );
+          tableContainer.innerHTML =
+            '<div class="table-fallback-message" style="color:#ef4444; border-color:#fecaca;">Error: Failed to fetch user list. Check DB function setup and RLS.</div>';
+          return;
+        }
+
+        const filteredUsers = (users || []).filter(
+          (user) => user.email !== EXCLUDED_EMAIL
+        );
+
+        if (filteredUsers.length === 0) {
+          tableContainer.innerHTML =
+            '<div class="table-fallback-message">No registered users found.</div>';
+          return;
+        }
+
+        const tableHTML = `
+          <table class="min-w-full divide-y divide-pink-200">
+            <thead class="bg-pink-50">
+              <tr>
+                <th class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Email (Masked)
+                </th>
+                <th class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                  Registered At
+                </th>
+                <th class="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                  Last Sign In
+                </th>
+                <th class="px-4 md:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+              ${filteredUsers
+                .map(
+                  (user) => `
+                <tr class="hover:bg-gray-50 transition duration-150">
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${user.full_name || "N/A"}
+                  </td>
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 masked-email">
+                    ${maskEmail(user.email)}
+                  </td>
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                    ${new Date(user.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </td>
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                    ${
+                      user.last_sign_in_at
+                        ? new Date(user.last_sign_in_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )
+                        : "Never"
+                    }
+                  </td>
+                  <td class="px-4 md:px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <button 
+                        onclick="confirmDeleteUser('${
+                          user.user_id
+                        }', '${maskEmail(user.email)}')"
+                        class="text-red-600 hover:text-red-900 transition duration-150 p-2 rounded-full hover:bg-red-50" 
+                        title="Delete User"
+                    >
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </td>
+                </tr>
+              `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `;
+        tableContainer.innerHTML = tableHTML;
+      }
+
+      async function deleteUser(userId) {
+        const { error: authDeleteError } =
+          await supabaseClient.auth.admin.deleteUser(userId);
+
+        if (authDeleteError) {
+          console.error(
+            "🚨 Supabase Admin Error: Delete user failed:",
+            authDeleteError
+          );
+          notify(
+            "error",
+            "Deletion Failed",
+            `Failed to delete user ID: ${userId}. Error: ${authDeleteError.message}`
+          );
+          return false;
+        }
+
+        const { error: profileDeleteError } = await supabaseClient
+          .from("users")
+          .delete()
+          .eq("auth_id", userId);
+
+        if (profileDeleteError) {
+          console.error(
+            "🚨 Supabase DB Error: Profile delete failed:",
+            profileDeleteError
+          );
+          notify(
+            "warning",
+            "Profile Not Deleted",
+            `Could not delete profile data for user ID: ${userId}. Manual cleanup needed.`
+          );
+        }
+
+        return true;
+      }
+
+      async function confirmDeleteUser(userId, userEmailMasked) {
+        const result = await Swal.fire({
+          title: "Are you sure?",
+          html: `You are about to permanently delete user: <br><strong>${userEmailMasked}</strong>. This action cannot be undone.`,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#db2777",
+          cancelButtonColor: "#9ca3af",
+          confirmButtonText: "Yes, delete it!",
+        });
+
+        if (result.isConfirmed) {
+          notify("info", "Deleting...", "The user account is being removed.");
+
+          const success = await deleteUser(userId);
+
+          if (success) {
+            notify(
+              "success",
+              "Deleted!",
+              `User ${userEmailMasked} has been successfully deleted.`
+            );
+            // Reload data after successful deletion
+            loadDashboardStats();
+            loadUsersTable();
+          }
+        }
+      }
+
+      async function checkAuthAndLoadData() {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabaseClient.auth.getUser();
+
+        if (!user || authError) {
+          window.location.href = "./login.html";
+          return;
+        }
+
+        const { data: adminData, error: adminCheckError } = await supabaseClient
+          .from("admin_users_secure")
+          .select("name")
+          .eq("auth_id", user.id)
+          .single();
+
+        if (adminCheckError && adminCheckError.code !== "PGRST116") {
+          console.error("Admin Check RLS/DB Error:", adminCheckError);
+        }
+
+        if (!adminData) {
+          await supabaseClient.auth.signOut();
+          notify(
+            "error",
+            "Access Denied",
+            "You are not authorized to view this page."
+          );
+          setTimeout(() => {
+            window.location.href = "../login.html";
+          }, 1500);
+          return;
+        }
+
+        const adminEmail = user.email || "Admin";
+        const initial = adminEmail.charAt(0).toUpperCase();
+
+        document.getElementById("adminEmail").textContent = adminEmail;
+        document.getElementById("adminAvatar").textContent = initial;
+
+        // Load data specific to the users page
+        loadDashboardStats();
+        loadUsersTable();
+      }
+
+      document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) {
+            notify(
+              "error",
+              "Logout Failed",
+              "Could not log out. Try refreshing the page."
+            );
+            return;
+          }
+          notify("info", "Logged Out", "Redirecting to login...");
+          setTimeout(() => {
+            window.location.href = "./login.html";
+          }, 500);
+        });
+
+      checkAuthAndLoadData();
+    </script>
+  </body>
+</html>

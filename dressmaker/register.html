@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register | DressMate</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="./assets/logo.png" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #ffe6f0;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 192, 203, 0.4);
+      }
+
+      /* ADD CUSTOM SWEETALERT STYLES for Toast notifications */
+      .swal2-popup {
+        font-family: "Poppins", sans-serif !important;
+        border-radius: 1rem !important;
+      }
+      .swal2-title {
+        color: #d12e87 !important;
+      }
+
+      @media (max-width: 640px) {
+        .glass {
+          padding: 1.5rem !important;
+        }
+
+        img {
+          width: 70px !important;
+          height: 70px !important;
+        }
+
+        h1 {
+          font-size: 1.25rem !important;
+        }
+
+        p,
+        label,
+        input,
+        button {
+          font-size: 0.85rem !important;
+        }
+
+        input {
+          padding: 0.4rem 0.6rem !important;
+        }
+
+        button {
+          padding: 0.5rem !important;
+        }
+
+        .text-sm {
+          font-size: 0.75rem !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="flex items-center justify-center px-4">
+    <div
+      class="w-full max-w-sm sm:max-w-md md:max-w-lg glass rounded-2xl shadow-lg p-6 sm:p-8 text-gray-800 text-sm sm:text-base"
+      data-aos="fade-up"
+      data-aos-duration="1000"
+    >
+      <div class="text-center mb-6">
+        <a href="index.html">
+          <img
+            src="./assets/logo.png"
+            alt="DressMate Logo"
+            class="mx-auto w-24 h-24 mb-3"
+            data-aos="zoom-in"
+          />
+        </a>
+        <h1 class="text-2xl font-semibold text-pink-700" data-aos="fade-up">
+          Create Your Account
+        </h1>
+        <p
+          class="text-sm text-gray-600 mt-1"
+          data-aos="fade-up"
+          data-aos-delay="200"
+        >
+          Join DressMate and start building your wardrobe
+        </p>
+      </div>
+
+      <form
+        id="registerForm"
+        class="space-y-4"
+        data-aos="fade-up"
+        data-aos-delay="400"
+      >
+        <div>
+          <label for="fullName" class="block text-sm font-medium text-gray-700"
+            >Full Name</label
+          >
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            placeholder="Your full name"
+            required
+            class="w-full mt-1 px-4 py-2 rounded-lg border border-pink-200 focus:ring-2 focus:ring-pink-400"
+          />
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700"
+            >Email</label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="you@example.com"
+            required
+            class="w-full mt-1 px-4 py-2 rounded-lg border border-pink-200 focus:ring-2 focus:ring-pink-400"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Create a password"
+              required
+              class="w-full mt-1 px-4 py-2 rounded-lg border border-pink-200 focus:ring-2 focus:ring-pink-400"
+            />
+          </div>
+
+          <div>
+            <label
+              for="confirmPassword"
+              class="block text-sm font-medium text-gray-700"
+              >Confirm Password</label
+            >
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="Confirm password"
+              required
+              class="w-full mt-1 px-4 py-2 rounded-lg border border-pink-200 focus:ring-2 focus:ring-pink-400"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-full transition font-semibold shadow-md"
+        >
+          <i class="fas fa-user-plus mr-2"></i> Register
+        </button>
+      </form>
+
+      <p class="text-sm text-center text-gray-700 mt-6">
+        Already have an account?
+        <a href="login.html" class="text-pink-600 font-semibold hover:underline"
+          >Log In</a
+        >
+      </p>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+      AOS.init();
+
+      // ADD THE NOTIFY HELPER FUNCTION
+      function notify(icon, title, text) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          text: text,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "swal2-popup",
+            title: "swal2-title",
+          },
+        });
+      }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+      // Initialize Supabase
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      const registerForm = document.getElementById("registerForm");
+
+      registerForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const fullName = document.getElementById("fullName").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const confirmPassword = document
+          .getElementById("confirmPassword")
+          .value.trim();
+        const registerButton = e.target.querySelector('button[type="submit"]');
+
+        if (!fullName || !email || !password || !confirmPassword) {
+          notify("warning", "Missing Fields", "Please fill out all fields.");
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          notify("error", "Password Mismatch", "Passwords do not match!");
+          return;
+        }
+
+        registerButton.disabled = true;
+        registerButton.innerHTML =
+          '<i class="fas fa-spinner fa-spin mr-2"></i> Creating account...';
+        registerButton.classList.add("opacity-70", "cursor-not-allowed");
+
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: fullName },
+            emailRedirectTo: "http://localhost/login.html",
+          },
+        });
+
+        if (error) {
+          notify("error", "Registration Failed", error.message);
+          registerButton.disabled = false;
+          registerButton.innerHTML =
+            '<i class="fas fa-user-plus mr-2"></i> Register';
+          registerButton.classList.remove("opacity-70", "cursor-not-allowed");
+          return;
+        }
+
+        notify(
+          "info",
+          "Check Your Email!",
+          `Verification link sent to ${email}. Please check your inbox and spam folder.`
+        );
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 3000);
+      });
+    </script>
+  </body>
+</html>

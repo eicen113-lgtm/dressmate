@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | DressMate</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="../../assets/logo.png" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f7f7f7;
+        min-height: 100vh;
+      }
+
+      .swal2-popup {
+        font-family: "Poppins", sans-serif !important;
+        border-radius: 1rem !important;
+      }
+
+      .swal2-title {
+        color: #db2777 !important;
+      }
+
+      .sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: #ecc0d7 #f3f4f6;
+      }
+
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb {
+        background-color: #db2777;
+        border-radius: 20px;
+      }
+
+      .chart-container {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        border: 1px solid #fce7f3;
+      }
+      .chart-container:hover {
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+      }
+      .chart-fallback-message {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 300px;
+        color: #f59e0b;
+        font-weight: 500;
+        text-align: center;
+        padding: 1rem;
+        border: 1px dashed #fcd34d;
+        border-radius: 0.5rem;
+      }
+    </style>
+  </head>
+
+  <body class="flex">
+    <div
+      id="mobile-overlay"
+      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-30 hidden lg:hidden transition-opacity duration-300"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <aside
+      id="sidebar"
+      class="sidebar fixed inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out bg-white w-64 flex flex-col z-40 shadow-xl border-r border-pink-100"
+    >
+      <div
+        class="p-6 flex items-center justify-center border-b border-pink-100 h-20"
+      >
+        <img
+          src="../../assets/logo.png"
+          alt="DressMate Logo"
+          class="w-10 h-10 mr-3"
+        />
+        <span class="text-xl font-bold text-pink-700">DressMate Admin</span>
+      </div>
+
+      <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
+        <a
+          href="dashboard.html"
+          class="flex items-center p-3 rounded-xl bg-pink-100 text-pink-700 font-semibold hover:bg-pink-200 transition duration-200"
+        >
+          <i class="fas fa-home w-5 mr-3"></i>
+          Dashboard
+        </a>
+        <a
+          href="users.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-users w-5 mr-3"></i>
+          Users
+        </a>
+        <a
+          href="reports.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-chart-line w-5 mr-3"></i>
+          Reports
+        </a>
+        <a
+          href="settings.html"
+          class="flex items-center p-3 rounded-xl text-gray-600 hover:bg-pink-50 hover:text-pink-600 transition duration-200"
+        >
+          <i class="fas fa-cog w-5 mr-3"></i>
+          Settings
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-pink-100">
+        <button
+          id="logoutButton"
+          class="w-full flex items-center justify-center p-3 rounded-xl bg-pink-600 text-white font-semibold hover:bg-pink-700 transition duration-200 shadow-lg"
+        >
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      <header
+        class="bg-white shadow-md lg:shadow-none border-b border-pink-100 h-20 flex items-center justify-between p-4 lg:p-6 sticky top-0 z-20"
+      >
+        <button
+          id="sidebarToggle"
+          class="text-pink-600 lg:hidden focus:outline-none"
+          onclick="toggleSidebar()"
+        >
+          <i class="fas fa-bars text-2xl"></i>
+        </button>
+        <h2 class="text-2xl font-bold text-gray-800 hidden lg:block">
+          Dashboard Overview
+        </h2>
+
+        <div class="flex items-center space-x-3">
+          <span
+            class="text-sm font-medium text-gray-600 hidden sm:block"
+            id="adminEmail"
+          >
+            Loading...
+          </span>
+          <div
+            id="adminAvatar"
+            class="w-10 h-10 bg-pink-200 rounded-full flex items-center justify-center text-pink-700 font-bold text-lg"
+          ></div>
+        </div>
+      </header>
+
+      <main class="flex-grow p-4 lg:p-8">
+        <div class="mb-8">
+          <h1
+            class="text-3xl font-bold text-pink-700 mb-1"
+            data-aos="fade-right"
+          >
+            Welcome, Admin!
+          </h1>
+          <p class="text-gray-600" data-aos="fade-right" data-aos-delay="100">
+            Quick metrics and system status at a glance.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div
+            class="chart-container flex flex-col items-start"
+            data-aos="fade-up"
+          >
+            <i class="fas fa-users text-3xl text-pink-500 mb-2"></i>
+            <p class="text-sm text-gray-500 font-medium">Total Users</p>
+            <span id="totalUsers" class="text-3xl font-bold text-gray-800"
+              >0</span
+            >
+          </div>
+          <div
+            class="chart-container flex flex-col items-start"
+            data-aos="fade-up"
+            data-aos-delay="100"
+          >
+            <i class="fas fa-tshirt text-3xl text-green-500 mb-2"></i>
+            <p class="text-sm text-gray-500 font-medium">Total Clothes</p>
+            <span id="totalClothes" class="text-3xl font-bold text-gray-800"
+              >0</span
+            >
+          </div>
+          <div
+            class="chart-container flex flex-col items-start"
+            data-aos="fade-up"
+            data-aos-delay="200"
+          >
+            <i class="fas fa-calendar-check text-3xl text-blue-500 mb-2"></i>
+            <p class="text-sm text-gray-500 font-medium">Weekly Outfits</p>
+            <span id="weeklyOutfits" class="text-3xl font-bold text-gray-800"
+              >0</span
+            >
+          </div>
+          <div
+            class="chart-container flex flex-col items-start"
+            data-aos="fade-up"
+            data-aos-delay="300"
+          >
+            <i class="fas fa-user-plus text-3xl text-yellow-500 mb-2"></i>
+            <p class="text-sm text-gray-500 font-medium">New Users (7 Days)</p>
+            <span id="newUsers" class="text-3xl font-bold text-gray-800"
+              >0</span
+            >
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div
+            class="lg:col-span-2 chart-container"
+            data-aos="fade-up"
+            data-aos-delay="400"
+          >
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+              User Registration Trend
+            </h3>
+
+            <div id="registrationTrendChart" class="w-full h-80">
+              <div class="chart-fallback-message h-full">
+                Loading user registration data...
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-container" data-aos="fade-up" data-aos-delay="500">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+              Top Clothing Categories
+            </h3>
+            <div id="clothingTypeChart">
+              <div class="chart-fallback-message">Loading chart data...</div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+      AOS.init();
+
+      // --- Constants and Initialization ---
+      const EXCLUDED_EMAIL = "dressmate@dress.com";
+
+      function notify(icon, title, text) {
+        Swal.fire({
+          icon: icon,
+          title: title,
+          text: text,
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "swal2-popup",
+            title: "swal2-title",
+          },
+        });
+      }
+
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("mobile-overlay");
+
+      function toggleSidebar() {
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      }
+
+      const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+      );
+
+      async function checkAuthAndLoadData() {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabaseClient.auth.getUser();
+
+        if (!user || authError) {
+          window.location.href = "./login.html";
+          return;
+        }
+
+        const { data: adminData, error: adminCheckError } = await supabaseClient
+          .from("admin_users_secure")
+          .select("name")
+          .eq("auth_id", user.id)
+          .single();
+
+        if (adminCheckError && adminCheckError.code !== "PGRST116") {
+          console.error("Admin Check RLS/DB Error:", adminCheckError);
+        }
+
+        if (!adminData) {
+          await supabaseClient.auth.signOut();
+          notify(
+            "error",
+            "Access Denied",
+            "You are not authorized to view this page."
+          );
+          setTimeout(() => {
+            window.location.href = "../login.html";
+          }, 1500);
+          return;
+        }
+
+        const adminEmail = user.email || "Admin";
+        const initial = adminEmail.charAt(0).toUpperCase();
+
+        document.getElementById("adminEmail").textContent = adminEmail;
+        document.getElementById("adminAvatar").textContent = initial;
+
+        const adminFirstName = adminData.name
+          ? adminData.name.split(" ")[0]
+          : "Admin";
+        document.querySelector(
+          "h1.text-3xl"
+        ).textContent = `Welcome, ${adminFirstName}!`;
+
+        loadDashboardData();
+      }
+
+      async function fetchCount(table, elementId, filter = {}) {
+        let query = supabaseClient
+          .from(table)
+          .select("*", { count: "exact", head: true });
+
+        if (table === "users") {
+          query = query.neq("email", EXCLUDED_EMAIL);
+        }
+
+        if (filter.gte) {
+          query = query.gte(filter.column, filter.gte);
+        }
+
+        const { count, error } = await query;
+
+        if (error) {
+          console.error(
+            `🚨 Supabase Error: Failed to fetch count for ${table}:`,
+            error.message
+          );
+          document.getElementById(elementId).textContent = "RLS Error";
+          return 0;
+        }
+        document.getElementById(elementId).textContent = count || 0;
+        return count || 0;
+      }
+
+      async function fetchRegistrationData() {
+        const chartContainer = document.getElementById(
+          "registrationTrendChart"
+        );
+
+        const { data: users, error } = await supabaseClient.rpc(
+          "get_full_user_list"
+        );
+
+        if (error) {
+          console.error(
+            "🚨 Supabase RPC Error: get_full_user_list failed:",
+            error
+          );
+          chartContainer.innerHTML =
+            '<div class="chart-fallback-message h-full" style="color:#ef4444; border-color:#fecaca;">Error: Failed to fetch user data. Check DB function permissions.</div>';
+          return null;
+        }
+
+        if (!users || users.length === 0) {
+          chartContainer.innerHTML =
+            '<div class="chart-fallback-message h-full">No registered users found for charting.</div>';
+          return null;
+        }
+
+        const registrationData = users.map((user) => ({
+          timestamp: new Date(user.created_at).getTime(),
+          date: new Date(user.created_at).toISOString().substring(0, 10), // YYYY-MM-DD
+        }));
+
+        const dailyCounts = registrationData.reduce((acc, user) => {
+          acc[user.date] = (acc[user.date] || 0) + 1;
+          return acc;
+        }, {});
+
+        const sortedCounts = Object.entries(dailyCounts)
+          .map(([date, count]) => ({ date, count }))
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        let cumulativeSum = 0;
+        const cumulativeData = sortedCounts.map((item) => {
+          cumulativeSum += item.count;
+          return { x: item.date, y: cumulativeSum };
+        });
+
+        return cumulativeData;
+      }
+
+      async function fetchClothingCategoryData() {
+        const chartElement = document.querySelector("#clothingTypeChart");
+
+        const { data: clothes, error } = await supabaseClient.rpc(
+          "get_clothing_category_data"
+        );
+
+        if (error) {
+          console.error(
+            "🚨 Supabase RPC Error: get_clothing_category_data failed:",
+            error
+          );
+          chartElement.innerHTML =
+            '<div class="chart-fallback-message" style="color:#ef4444; border-color:#fecaca;">Error: Failed to call SQL function. Did you create **get_clothing_category_data()**?</div>';
+          return { series: [0], labels: ["Error"] };
+        }
+
+        if (!clothes || clothes.length === 0) {
+          chartElement.innerHTML =
+            '<div class="chart-fallback-message">No clothing items found in the **user_clothes** table.</div>';
+          return { series: [0], labels: ["No Data"] };
+        }
+
+        const counts = {};
+        clothes.forEach((item) => {
+          const rawType = item.clothing_type;
+          if (rawType) {
+            const type = rawType.trim();
+            const normalizedType = type.charAt(0).toUpperCase() + type.slice(1);
+            counts[normalizedType] = (counts[normalizedType] || 0) + 1;
+          } else {
+            counts["Uncategorized"] = (counts["Uncategorized"] || 0) + 1;
+          }
+        });
+
+        const sorted = Object.entries(counts).sort(([, a], [, b]) => b - a);
+        const topN = 6;
+
+        let series = sorted.slice(0, topN).map(([, count]) => count);
+        let labels = sorted.slice(0, topN).map(([label]) => label);
+
+        const otherCount = sorted
+          .slice(topN)
+          .reduce((sum, [, count]) => sum + count, 0);
+
+        if (otherCount > 0) {
+          series.push(otherCount);
+          labels.push("Other");
+        }
+
+        return { series, labels };
+      }
+
+      async function loadDashboardData() {
+        fetchCount("users", "totalUsers");
+        fetchCount("user_clothes", "totalClothes");
+
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        fetchCount("weekly_outfits", "weeklyOutfits", {
+          column: "created_at",
+          gte: sevenDaysAgo.toISOString(),
+        });
+
+        fetchCount("users", "newUsers", {
+          column: "created_at",
+          gte: sevenDaysAgo.toISOString(),
+        });
+
+        const [registrationData, clothingTypeData] = await Promise.all([
+          fetchRegistrationData(), // Fetch data for the new registration trend chart
+          fetchClothingCategoryData(),
+        ]);
+
+        if (registrationData) {
+          renderRegistrationChart(registrationData);
+        }
+
+        if (
+          clothingTypeData.series.length > 0 &&
+          clothingTypeData.series[0] !== 0
+        ) {
+          renderClothingTypeChart(clothingTypeData);
+        }
+      }
+
+      function renderRegistrationChart(data) {
+        const chartElement = document.getElementById("registrationTrendChart");
+
+        const options = {
+          series: [
+            {
+              name: "Cumulative Users",
+              data: data,
+            },
+          ],
+          chart: {
+            type: "area",
+            height: 320,
+            toolbar: {
+              show: false,
+            },
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          stroke: {
+            curve: "smooth",
+            width: 3,
+            colors: ["#DB2777"],
+          },
+          xaxis: {
+            type: "datetime",
+            labels: {
+              datetimeFormatter: {
+                year: "yyyy",
+                month: "MMM 'yy",
+                day: "dd MMM",
+              },
+            },
+            tickAmount: 6,
+            min:
+              data.length > 0
+                ? new Date(data[0].x).getTime()
+                : new Date().getTime() - 30 * 24 * 60 * 60 * 1000, // Default to 30 days ago if no data
+          },
+          yaxis: {
+            title: {
+              text: "Total Users",
+              style: { color: "#6B7280" },
+            },
+            min: 0,
+            tickAmount: 5,
+          },
+          tooltip: {
+            x: {
+              format: "dd MMM yyyy",
+            },
+          },
+          grid: {
+            borderColor: "#f1f1f1",
+          },
+          fill: {
+            type: "gradient",
+            gradient: {
+              shadeIntensity: 1,
+              opacityFrom: 0.7,
+              opacityTo: 0.9,
+              stops: [0, 100],
+              colorStops: [
+                {
+                  offset: 0,
+                  color: "#DB2777",
+                  opacity: 0.3,
+                },
+                {
+                  offset: 100,
+                  color: "#DB2777",
+                  opacity: 0.05,
+                },
+              ],
+            },
+          },
+        };
+
+        chartElement.innerHTML = "";
+        const chart = new ApexCharts(chartElement, options);
+        chart.render();
+      }
+
+      function renderClothingTypeChart(data) {
+        const options = {
+          series: data.series,
+          chart: {
+            type: "donut",
+            height: 300,
+          },
+          labels: data.labels,
+          colors: [
+            "#DB2777",
+            "#F97316",
+            "#10B981",
+            "#3B82F6",
+            "#F59E0B",
+            "#9333ea",
+            "#64748b",
+          ],
+          dataLabels: {
+            enabled: true,
+            formatter: function (val, opts) {
+              const count = opts.w.config.series[opts.seriesIndex];
+              const total = opts.w.globals.seriesTotals.reduce(
+                (a, b) => a + b,
+                0
+              );
+              const percentage =
+                total > 0 ? ((count / total) * 100).toFixed(0) : 0;
+              return `${percentage}% (${count})`;
+            },
+            style: {
+              fontSize: "11px",
+              colors: ["#444"],
+            },
+            dropShadow: { enabled: false },
+          },
+          legend: {
+            position: "bottom",
+            horizontalAlign: "left",
+            markers: { width: 10, height: 10, radius: 2 },
+            itemMargin: { horizontal: 8, vertical: 3 },
+          },
+          plotOptions: {
+            pie: {
+              donut: {
+                size: "65%",
+                labels: {
+                  show: true,
+                  name: {
+                    show: true,
+                    fontSize: "16px",
+                    color: "#6b7280",
+                    offsetY: -10,
+                  },
+                  value: {
+                    show: true,
+                    fontSize: "24px",
+                    fontWeight: "700",
+                    color: "#1f2937",
+                    offsetY: 5,
+                    formatter: function (val) {
+                      return val;
+                    },
+                  },
+                  total: {
+                    show: true,
+                    label: "Total Items",
+                    color: "#9ca3af",
+                    formatter: function (w) {
+                      return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responsive: [
+            {
+              breakpoint: 480,
+              options: {
+                chart: { width: "100%" },
+                legend: { position: "bottom" },
+              },
+            },
+          ],
+        };
+        document.querySelector("#clothingTypeChart").innerHTML = ""; // Clear existing content
+        const chart = new ApexCharts(
+          document.querySelector("#clothingTypeChart"),
+          options
+        );
+        chart.render();
+      }
+
+      document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) {
+            notify(
+              "error",
+              "Logout Failed",
+              "Could not log out. Try refreshing the page."
+            );
+            return;
+          }
+          notify("info", "Logged Out", "Redirecting to login...");
+          setTimeout(() => {
+            window.location.href = "./login.html";
+          }, 500);
+        });
+
+      checkAuthAndLoadData();
+    </script>
+  </body>
+</html>
