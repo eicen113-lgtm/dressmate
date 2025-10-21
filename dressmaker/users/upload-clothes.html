@@ -88,6 +88,7 @@
         opacity: 0;
         transform: scale(0.8);
         transition: all 0.2s ease-in-out;
+        cursor: pointer;
       }
 
       .clothes-card:hover .delete-btn {
@@ -98,6 +99,16 @@
       .clothes-card .delete-btn:hover {
         background-color: #db2777;
         color: white;
+      }
+
+      /* --- MOBILE VISIBILITY: Trash icon always visible on small screens (< 768px) --- */
+      @media (max-width: 768px) {
+        .clothes-card .delete-btn {
+          opacity: 1;
+          transform: scale(1);
+          background: rgba(236, 72, 153, 0.9);
+          color: white;
+        }
       }
     </style>
   </head>
@@ -202,6 +213,7 @@
     <script type="module">
       import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm";
 
+      // IMPORTANT: Replace with your actual Supabase details
       const SUPABASE_URL = "https://iqirktmtuvqoeqrcqcqb.supabase.co";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaXJrdG10dXZxb2VxcmNxY3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NDkxNzMsImV4cCI6MjA3NTIyNTE3M30.nbxFIL3sqCnWSaKZl7X2y4KgpUw8UF_JC9_Ago1BQWo";
@@ -211,11 +223,10 @@
       const UPLOAD_FORM = document.getElementById("uploadForm");
       const UPLOAD_BUTTON = document.getElementById("uploadButton");
       const CLOTHES_CONTAINER = document.getElementById("addedClothes");
+      const CLOTHES_STATUS = document.getElementById("clothes-status");
 
-      // CONFIGURATION 
+      // CONFIGURATION
       const BUCKET_NAME = "upload-clothes";
-      // No sub-folder is used. Files go directly to the bucket root.
-     
 
       /**
        * Shows a SweetAlert notification.
@@ -256,21 +267,105 @@
       }
 
       /**
+       * Handles the deletion of a single clothing item and its image.
+       * @param {string} itemId - The ID of the item to delete from the DB.
+       * @param {string} imageUrl - The public URL of the image to delete from storage.
+       * @param {HTMLElement} deleteButton - The button element that was clicked.
+       */
+      async function deleteClothingItem(itemId, imageUrl, deleteButton) {
+        if (!deleteButton) return;
+
+        const result = await Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this! The item and its image will be permanently deleted.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#ec4899",
+          cancelButtonColor: "#9ca3af",
+          confirmButtonText: "Yes, delete it!",
+        });
+
+        if (!result.isConfirmed) return;
+
+        CLOTHES_STATUS.innerText = "Deleting item...";
+        deleteButton.disabled = true;
+
+        let successfullyDeleted = false;
+
+        try {
+          // 1. Delete record from user_clothes table
+          const { error: deleteError } = await supabase
+            .from("user_clothes")
+            .delete()
+            .eq("id", itemId);
+
+          if (deleteError) {
+            notify("error", "Failed to delete item from database.");
+            console.error("DB Deletion Error:", deleteError);
+            CLOTHES_STATUS.innerText = "Deletion failed (DB).";
+            return;
+          }
+
+          // 2. Delete file from Supabase Storage
+          if (imageUrl && imageUrl.startsWith("http")) {
+            const urlPath = new URL(imageUrl).pathname;
+            // The path starts after /storage/v1/object/public/
+            const pathStart = urlPath.indexOf(`/public/${BUCKET_NAME}/`);
+            if (pathStart !== -1) {
+              // +8 accounts for '/public/' and BUCKET_NAME.length
+              const filePath = urlPath.substring(
+                pathStart + BUCKET_NAME.length + 8
+              );
+
+              const { error: storageError } = await supabase.storage
+                .from(BUCKET_NAME)
+                .remove([filePath]);
+
+              if (storageError) {
+                console.warn(
+                  "Could not delete image from storage:",
+                  storageError
+                );
+              }
+            } else {
+              console.warn(
+                "Image URL structure didn't match expected Supabase format, skipping storage delete."
+              );
+            }
+          } else {
+            console.warn("Invalid image URL, skipping storage delete.");
+          }
+
+          successfullyDeleted = true;
+        } catch (e) {
+          console.error("An unexpected error occurred during deletion:", e);
+          notify("error", "An unexpected error occurred.");
+          CLOTHES_STATUS.innerText = "Deletion failed (Internal Error).";
+        } finally {
+          deleteButton.disabled = false; // Re-enable button
+        }
+
+        if (successfullyDeleted) {
+          notify("success", "Item deleted successfully!");
+          fetchClothes(); // Refresh the list
+        }
+      }
+
+      /**
        * Fetches and displays the user's clothes.
        */
       async function fetchClothes() {
         const userId = await getUserId();
-        const clothesStatus = document.getElementById("clothes-status");
         CLOTHES_CONTAINER.innerHTML = ""; // Clear existing content
 
         if (!userId) {
           CLOTHES_CONTAINER.innerHTML = `<p class="text-gray-500 text-center col-span-full">
-                                          <i class="fa-solid fa-lock text-pink-500 mr-2"></i> Please login to view your added clothes.
-                                        </p>`;
+                                              <i class="fa-solid fa-lock text-pink-500 mr-2"></i> Please login to view your added clothes.
+                                            </p>`;
           return;
         }
 
-        clothesStatus.innerText = "Loading clothes...";
+        CLOTHES_STATUS.innerText = "Loading clothes...";
 
         const { data: clothes, error: fetchError } = await supabase
           .from("user_clothes")
@@ -280,17 +375,17 @@
 
         if (fetchError) {
           console.error("Error fetching clothes:", fetchError);
-          clothesStatus.innerText = "Failed to load clothes.";
+          CLOTHES_STATUS.innerText = "Failed to load clothes.";
           notify("error", "Failed to load clothes.");
           return;
         }
 
-        clothesStatus.innerText = ""; // Clear status on success
+        CLOTHES_STATUS.innerText = ""; // Clear status on success
 
         if (!clothes || clothes.length === 0) {
           CLOTHES_CONTAINER.innerHTML = `<p class="text-gray-500 text-center col-span-full">
-                                          <i class="fa-solid fa-shirt text-pink-500 mr-2"></i> No clothes added yet. Upload your first item!
-                                        </p>`;
+                                              <i class="fa-solid fa-shirt text-pink-500 mr-2"></i> No clothes added yet. Upload your first item!
+                                            </p>`;
           return;
         }
 
@@ -305,8 +400,8 @@
             </button>
             <div class="h-40 w-full mb-3 rounded-lg overflow-hidden border border-pink-100 bg-gray-100 flex items-center justify-center">
               <img src="${item.image_url || "../assets/placeholder.png"}" 
-                   alt="${item.description || "Clothing Item"}" 
-                   class="object-cover w-full h-full">
+                      alt="${item.description || "Clothing Item"}" 
+                      class="object-cover w-full h-full">
             </div>
             <h3 class="font-bold text-pink-600 mb-1 capitalize text-lg">${
               item.clothing_type
@@ -322,68 +417,14 @@
             </div>
           `;
 
-          card
-            .querySelector(".delete-btn")
-            .addEventListener("click", async (e) => {
-              const itemId = e.currentTarget.getAttribute("data-id");
-              const imageUrl = e.currentTarget.getAttribute("data-url");
+          const deleteButton = card.querySelector(".delete-btn");
+          deleteButton.addEventListener("click", (e) => {
+            const itemId = e.currentTarget.getAttribute("data-id");
+            const imageUrl = e.currentTarget.getAttribute("data-url");
+            // Call the new, dedicated async function
+            deleteClothingItem(itemId, imageUrl, e.currentTarget);
+          });
 
-              const result = await Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ec4899",
-                cancelButtonColor: "#9ca3af",
-                confirmButtonText: "Yes, delete it!",
-              });
-
-              if (!result.isConfirmed) return;
-
-              clothesStatus.innerText = "Deleting item...";
-              e.currentTarget.disabled = true;
-
-              const { error: deleteError } = await supabase
-                .from("user_clothes")
-                .delete()
-                .eq("id", itemId);
-
-              if (deleteError) {
-                notify("error", "Failed to delete item from database.");
-                console.error(deleteError);
-                clothesStatus.innerText = "Deletion failed (DB).";
-                e.currentTarget.disabled = false;
-                return;
-              }
-
-              try {
-                const urlPath = new URL(imageUrl).pathname;
-                // Extracts path after /storage/v1/object/public/upload-clothes/
-                const pathIndex = urlPath.indexOf(`/public/${BUCKET_NAME}/`);
-                const filePath = urlPath.substring(
-                  pathIndex + BUCKET_NAME.length + 8
-                );
-
-                const { error: storageError } = await supabase.storage
-                  .from(BUCKET_NAME)
-                  .remove([filePath]);
-
-                if (storageError) {
-                  console.warn(
-                    "Could not delete image from storage:",
-                    storageError
-                  );
-                }
-              } catch (e) {
-                console.warn(
-                  "Image URL parsing failed, skipping storage delete:",
-                  e
-                );
-              }
-
-              notify("success", "Item deleted successfully!");
-              fetchClothes(); 
-            });
           CLOTHES_CONTAINER.appendChild(card);
         });
       }
@@ -391,7 +432,7 @@
       UPLOAD_FORM.addEventListener("submit", async (e) => {
         e.preventDefault();
         STATUS_ELEMENT.innerText = "Processing...";
-        UPLOAD_BUTTON.disabled = true; 
+        UPLOAD_BUTTON.disabled = true;
 
         const userId = await getUserId();
 
@@ -464,6 +505,7 @@
             "Failed to save clothing details. (The image was uploaded but not linked to your account.)";
           notify("error", "Failed to save clothing details.");
           console.error("DB Insert Error:", insertError);
+          // Attempt to remove the uploaded file if DB insertion failed
           await supabase.storage.from(BUCKET_NAME).remove([fileName]);
           UPLOAD_BUTTON.disabled = false;
           return;
@@ -471,7 +513,7 @@
 
         UPLOAD_FORM.reset();
         STATUS_ELEMENT.innerText = "";
-        notify("success", "Clothing added successfully! 👕");
+        notify("success", "Clothing added successfully!");
         fetchClothes();
         UPLOAD_BUTTON.disabled = false;
       });
